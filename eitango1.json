@@ -12097,7 +12097,7 @@
   {
     "id": 19,
     "question": "I ________ approached the IT support desk, fully prepared to be mocked for forgetting my password for the third time today.",
-    "question_ja": "今日3回目のパスワード忘れで馬鹿にされることを完全に覚悟の上で、私は________ITサポートデスクに近づいた。",
+    "question_ja": "今日3回目のパスワード忘れで馬鹿にされることを完全に覚悟の上、私は________ITサポートデスクに近づいた。",
     "options": [
       { "word": "vividly", "is_correct": false, "meanings": ["鮮やかに", "生き生きと"], "example": "I vividly remember the exact moment my motivation to work left my body this morning. / 今朝、働く意欲が体から抜け落ちた瞬間のことを、私は鮮明に覚えている。" },
       { "word": "rigidly", "is_correct": false, "meanings": ["厳格に", "頑固に"], "example": "He rigidly followed the recipe, panicking when it asked for 'a pinch' of salt. / 彼は厳格にレシピに従い、「ひとつまみ」の塩を求められた時にパニックに陥った。" },
@@ -12105,4 +12105,5 @@
       { "word": "frigidly", "is_correct": false, "meanings": ["冷ややかに", "極寒で"], "example": "My cat stared at me frigidly after I had the audacity to buy a different brand of food. / 私が図々しくも違うブランドのエサを買った後、猫は私を冷ややかに見つめた。" }
     ]
   }
+
 ]
