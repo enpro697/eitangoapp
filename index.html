@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocab Master - 語彙力強化アプリ</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --primary-hover: #357ABD;
+            --primary-light: #E1EFFF;
+            --correct-color: #4CAF50;
+            --correct-bg: #E8F5E9;
+            --incorrect-color: #F44336;
+            --incorrect-bg: #FFEBEE;
+            --bg-color: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #E0E0E0;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 20px 30px 30px;
+            min-height: 80vh;
+            position: relative;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .hidden { display: none !important; }
+
+        h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-top: 0; }
+        .nav-link { color: var(--primary-color); text-decoration: none; font-weight: bold; display: inline-block; cursor: pointer; }
+        .nav-link:hover { text-decoration: underline; }
+        
+        button {
+            background-color: var(--primary-color); color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: var(--transition);
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; opacity: 0.5; }
+
+        /* エディタ画面 */
+        .editor-container { display: flex; flex-direction: column; gap: 15px; }
+        .editor-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: -5px; }
+        .btn-secondary { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
+        .btn-secondary:hover { background-color: #e4e4e4; }
+        
+        textarea {
+            width: 100%; height: 50vh; padding: 15px; border: 1px solid var(--border-color);
+            border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; box-sizing: border-box;
+            background-color: #FAFAFA;
+        }
+        textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
+        .error-message { color: var(--incorrect-color); background-color: var(--incorrect-bg); padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; }
+        .editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px;}
+
+        /* クイズ画面ヘッダー周り */
+        .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .menu-btn { background: none; color: var(--text-main); font-size: 24px; padding: 5px; box-shadow: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        .menu-btn:hover { background-color: #eee; }
+        
+        .quiz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+        .question-number { font-weight: bold; color: var(--text-muted); font-size: 18px; margin-bottom: 5px; }
+        
+        /* 画像レイアウト再現: 矢印ナビゲーション */
+        .arrow-nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .arrow-btn { background: none; color: var(--primary-color); font-size: 32px; font-weight: bold; padding: 0 10px; box-shadow: none; border-radius: 4px; }
+        .arrow-btn:hover { background-color: var(--primary-light); }
+        .arrow-btn:disabled { color: #ccc; background: none; }
+
+        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);}
+        .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 選択肢とアコーディオン */
+        .options-list { display: flex; flex-direction: column; gap: 12px; }
+        .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); }
+        .option-button { width: 100%; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
+        .option-button:hover { background-color: #f9f9f9; }
+        
+        .option-item.answered-correct { border-color: var(--correct-color); }
+        .option-item.answered-correct .option-button { background-color: var(--correct-bg); color: var(--correct-color); font-weight: bold; }
+        .option-item.answered-incorrect { border-color: var(--incorrect-color); }
+        .option-item.answered-incorrect .option-button { background-color: var(--incorrect-bg); color: var(--incorrect-color); }
+
+        .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; background-color: #fafafa; }
+        .accordion-inner { overflow: hidden; }
+        .accordion-body { padding: 0 20px 20px 20px; }
+        .option-item.open .accordion-content { grid-template-rows: 1fr; }
+        .option-item.open .option-button { border-bottom: 1px solid var(--border-color); }
+
+        .result-mark { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .mark-o { color: var(--correct-color); }
+        .mark-x { color: var(--incorrect-color); }
+        .meaning-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
+        .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
+
+        /* サイドバー（ドロワーメニュー） */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+        
+        .sidebar { position: fixed; top: 0; left: -300px; width: 260px; height: 100%; background: var(--card-bg); z-index: 100; box-shadow: 2px 0 8px rgba(0,0,0,0.1); overflow-y: auto; transition: left 0.3s ease; padding: 20px; box-sizing: border-box; }
+        .sidebar.open { left: 0; }
+        .sidebar-header { font-size: 18px; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center;}
+        .close-sidebar-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; box-shadow: none; height: 30px; width: 30px; line-height: 1;}
+        .close-sidebar-btn:hover { color: var(--incorrect-color); }
+        
+        .sidebar details { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+        .sidebar summary { background: #f0f4f8; padding: 12px 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .sidebar summary::-webkit-details-marker { display: none; }
+        .sidebar summary::after { content: "▼"; font-size: 12px; transition: transform 0.3s ease; }
+        .sidebar details[open] summary::after { transform: rotate(180deg); }
+        .sidebar details[open] summary { border-bottom: 1px solid var(--border-color); background: var(--primary-light); color: var(--primary-hover); }
+        
+        .sidebar-list { padding: 5px 0; background: #fff;}
+        .sidebar-item { padding: 10px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
+        .sidebar-item:hover { background: #f9f9f9; }
+        .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
+
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="app.toggleSidebar(false)"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        設問メニュー
+        <button class="close-sidebar-btn" onclick="app.toggleSidebar(false)">×</button>
+    </div>
+    <div id="sidebar-content"></div>
+</div>
+
+<div id="app">
+    <div id="editor-view" class="view">
+        <div class="top-nav-bar" style="justify-content: flex-end;">
+            <a class="nav-link" onclick="app.switchView('quiz')">設問ページへ遷移するリンク →</a>
+        </div>
+        <h2>読み込みデータ編集</h2>
+        
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <button class="btn-secondary" onclick="app.clearText()">全削除</button>
+                <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
+                <button style="background-color: #ff9800; color: white; border: none;" onclick="app.fetchRemoteData(true)">クラウドから最新データを取得</button>
+            </div>
+            
+            <textarea id="json-input" placeholder="ここにJSONデータを貼り付けてください。複数の配列をペーストしても自動で結合されます。"></textarea>
+            
+            <div id="json-error" class="error-message hidden">JSONの形式を満たしていません。記述を確認してください。</div>
+            
+            <div class="editor-actions">
+                <span style="font-size: 12px; color: var(--text-muted);">※差分がある場合のみボタンが活性化します</span>
+                <button id="import-btn" disabled onclick="app.importData()">取り込みボタン</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-view" class="view hidden">
+        <div class="top-nav-bar">
+            <button class="menu-btn" onclick="app.toggleSidebar(true)">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
+        </div>
+        
+        <div class="quiz-header">
+            <div>
+                <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
+            </div>
+            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()">アコーディオンを全開閉</button>
+        </div>
+
+        <div class="arrow-nav-container">
+            <button class="arrow-btn" id="btn-prev" onclick="app.prevPage()">＜</button>
+            <button class="arrow-btn" id="btn-next" onclick="app.nextPage()">＞</button>
+        </div>
+
+        <div id="question-text" class="question-text"></div>
+        <div id="question-translation" class="question-translation hidden"></div>
+        <div id="options-container" class="options-list"></div>
+    </div>
+</div>
+
+<script>
+const app = {
+    data: [],
+    savedJsonString: "",
+    currentIndex: 0,
+    isAllAccordionsOpen: false,
+    
+    // 例: "https://raw.githubusercontent.com/yourname/yourrepo/main/data.json"
+    REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
+
+    init() {
+        this.data = [];
+        this.savedJsonString = "[]";
+        const jsonInput = document.getElementById('json-input');
+        jsonInput.value = this.savedJsonString;
+        jsonInput.addEventListener('input', () => this.validateJsonInput());
+        
+        // アプリ起動時に自動でクラウドからデータを取得して適用
+        this.fetchRemoteData(false);
+        
+    },
+    
+    // ▼ 新規追加：クラウドからJSONを取得する関数 ▼
+    async fetchRemoteData(isManualClick = false) {
+        try {
+            if (isManualClick) {
+                document.getElementById('json-input').value = "通信中...";
+            }
+            
+            const response = await fetch(this.REMOTE_JSON_URL + "?timestamp=" + new Date().getTime()); // キャッシュ回避
+            if (!response.ok) throw new Error("Network response was not ok");
+            
+            const remoteData = await response.json(); // JSONとしてパース
+            
+            // データをテキストエリアにセット
+            const formattedJson = JSON.stringify(remoteData, null, 2);
+            document.getElementById('json-input').value = formattedJson;
+            
+            // そのまま自動で取り込み処理を実行
+            this.importData();
+
+            if (isManualClick) {
+                alert("クラウドから最新の単語データを取得し、適用しました！");
+            }
+        } catch (error) {
+            console.error("データの取得に失敗しました:", error);
+            if (isManualClick) {
+                alert("データの取得に失敗しました。オフラインかURLが間違っている可能性があります。");
+                document.getElementById('json-input').value = this.savedJsonString; // 元に戻す
+            }
+        }
+    },
+
+    // 複数のJSON配列や不要なテキストが混ざった文字列を結合・パースする最強関数
+    parseCustomJSON(inputStr) {
+        try {
+            // そのままパースできれば返す
+            return JSON.parse(inputStr);
+        } catch(e) {
+            // パース失敗時：『 ] と [ の間に挟まったテキスト 』を , に置換して配列を結合する
+            // 例: `] ここから二回目 [ ` が `,` になり、一つの巨大な配列になる
+            let fixedStr = inputStr.replace(/\]\s*[^\[\]\{\}]*\s*\[/g, ',');
+            try {
+                return JSON.parse(fixedStr);
+            } catch(e2) {
+                throw new Error("Invalid JSON format");
+            }
+        }
+    },
+
+    validateJsonInput() {
+        const inputVal = document.getElementById('json-input').value;
+        const errorMsg = document.getElementById('json-error');
+        const importBtn = document.getElementById('import-btn');
+        
+        // 空欄の場合はエラーを出さずボタンを無効化
+        if (!inputVal.trim()) {
+            errorMsg.classList.add('hidden');
+            importBtn.disabled = true;
+            return;
+        }
+
+        try {
+            this.parseCustomJSON(inputVal);
+            errorMsg.classList.add('hidden');
+            // 一度フォーマットした文字列と比較（差分感知）
+            const isDifferent = (inputVal.trim() !== this.savedJsonString);
+            importBtn.disabled = !isDifferent;
+        } catch (e) {
+            errorMsg.classList.remove('hidden');
+            importBtn.disabled = true;
+        }
+    },
+
+    importData() {
+        const inputVal = document.getElementById('json-input').value;
+        try {
+            // スマートパースでデータを取得
+            let parsedData = this.parseCustomJSON(inputVal);
+            
+            // 念のためフラットな配列にする（[ [...], [...] ] みたいな入れ子を防ぐ）
+            if(Array.isArray(parsedData) && parsedData.length > 0 && Array.isArray(parsedData[0])) {
+                parsedData = parsedData.flat();
+            }
+
+            this.data = parsedData;
+            
+            // フォーマットを綺麗に整形してテキストエリアに戻す（次からエラーにならないように）
+            this.savedJsonString = JSON.stringify(this.data, null, 2);
+            document.getElementById('json-input').value = this.savedJsonString; 
+            
+            document.getElementById('import-btn').disabled = true;
+            this.currentIndex = 0; 
+            this.renderSidebar(); // サイドバーの再構築
+            this.switchView('quiz');
+        } catch (e) {
+            alert('データの取り込みに失敗しました。');
+        }
+    },
+
+    // --- エディタ画面の便利機能 ---
+    clearText() {
+        document.getElementById('json-input').value = '';
+        this.validateJsonInput();
+    },
+
+    scrollToBottom() {
+        const ta = document.getElementById('json-input');
+        ta.scrollTop = ta.scrollHeight;
+    },
+    // ----------------------------
+
+    switchView(viewName) {
+        document.getElementById('editor-view').classList.add('hidden');
+        document.getElementById('quiz-view').classList.add('hidden');
+        document.getElementById(`${viewName}-view`).classList.remove('hidden');
+        if(viewName === 'quiz' && this.data.length > 0) {
+            this.renderQuiz();
+        }
+    },
+
+    renderQuiz() {
+        if (!this.data || this.data.length === 0) return;
+        
+        this.isAllAccordionsOpen = false;
+        const q = this.data[this.currentIndex];
+        
+        document.getElementById('q-current').innerText = this.currentIndex + 1;
+        document.getElementById('q-total').innerText = this.data.length;
+        document.getElementById('question-text').innerText = q.question;
+        
+        const transDiv = document.getElementById('question-translation');
+        transDiv.innerText = q.question_ja || "";
+        transDiv.classList.add('hidden');
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        let shuffledOptions = [...q.options];
+        for (let i = shuffledOptions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+        }
+
+        shuffledOptions.forEach((opt, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'option-item';
+            itemDiv.id = `option-item-${index}`;
+            const meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : opt.meanings;
+
+            itemDiv.innerHTML = `
+                <button class="option-button" onclick="app.handleOptionClick(${index}, ${opt.is_correct})">
+                    <span class="word-text">${index + 1}. ${opt.word}</span>
+                    <span class="icon-toggle">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <div class="accordion-body">
+                            <div class="result-mark ${opt.is_correct ? 'mark-o' : 'mark-x'}">
+                                ${opt.is_correct ? '〇 正解' : '× 不正解'}
+                            </div>
+                            <div class="meaning-text">意味: ${meaningStr}</div>
+                            <div class="example-text">"${opt.example}"</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+        });
+
+        this.updateNavButtons();
+        this.updateSidebarHighlight();
+    },
+
+    handleOptionClick(index, isCorrect) {
+        const item = document.getElementById(`option-item-${index}`);
+        if (item.classList.contains('open')) {
+            item.classList.remove('open');
+        } else {
+            item.classList.add('open');
+            item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
+        }
+        this.checkTranslationVisibility();
+    },
+
+    toggleAllAccordions() {
+        this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
+        const items = document.querySelectorAll('.option-item');
+        items.forEach((item) => {
+            const isCorrect = item.querySelector('.mark-o') !== null;
+            if (this.isAllAccordionsOpen) {
+                item.classList.add('open');
+                item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
+            } else {
+                item.classList.remove('open');
+            }
+        });
+        this.checkTranslationVisibility();
+    },
+
+    checkTranslationVisibility() {
+        const openItemsCount = document.querySelectorAll('.option-item.open').length;
+        const transDiv = document.getElementById('question-translation');
+        if (openItemsCount === 4 && transDiv.innerText.trim() !== "") {
+            transDiv.classList.remove('hidden');
+        } else {
+            transDiv.classList.add('hidden');
+        }
+    },
+
+    prevPage() {
+        if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.renderQuiz();
+        }
+    },
+
+    nextPage() {
+        if (this.currentIndex < this.data.length - 1) {
+            this.currentIndex++;
+            this.renderQuiz();
+        }
+    },
+
+    goToPage(index) {
+        if (index >= 0 && index < this.data.length) {
+            this.currentIndex = index;
+            this.renderQuiz();
+        }
+    },
+
+    updateNavButtons() {
+        document.getElementById('btn-prev').disabled = (this.currentIndex === 0);
+        document.getElementById('btn-next').disabled = (this.currentIndex === this.data.length - 1);
+    },
+
+    // --- サイドバー（ドロワーメニュー）関連 ---
+    toggleSidebar(show) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (show) {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+        } else {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+    },
+
+    renderSidebar() {
+        const container = document.getElementById('sidebar-content');
+        container.innerHTML = '';
+        
+        const groupSize = 50; // 50件ごとにグループ化
+        const totalGroups = Math.ceil(this.data.length / groupSize);
+
+        for (let g = 0; g < totalGroups; g++) {
+            const start = g * groupSize + 1;
+            const end = Math.min((g + 1) * groupSize, this.data.length);
+
+            const details = document.createElement('details');
+            const summary = document.createElement('summary');
+            summary.innerText = `${start} 〜 ${end} 件目`;
+            details.appendChild(summary);
+
+            const list = document.createElement('div');
+            list.className = 'sidebar-list';
+
+            for (let i = start - 1; i < end; i++) {
+                const item = document.createElement('div');
+                item.className = 'sidebar-item';
+                item.id = `sidebar-item-${i}`;
+                item.innerText = `- Question ${i + 1}`;
+                item.onclick = () => {
+                    this.goToPage(i);
+                    this.toggleSidebar(false); // ジャンプしたらメニューを閉じる
+                };
+                list.appendChild(item);
+            }
+            details.appendChild(list);
+            container.appendChild(details);
+        }
+    },
+
+    updateSidebarHighlight() {
+        // すべてのハイライトをリセット
+        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+        
+        const activeEl = document.getElementById(`sidebar-item-${this.currentIndex}`);
+        if (activeEl) {
+            activeEl.classList.add('active');
+            
+            // 所属しているアコーディオン（details）を開く
+            const parentDetails = activeEl.closest('details');
+            if (parentDetails) {
+                parentDetails.open = true;
+            }
+            
+            // サイドバー内で現在位置まで自動スクロール
+            activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => app.init());
+</script>
+</body>
+</html>
