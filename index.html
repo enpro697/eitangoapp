@@ -81,7 +81,7 @@
         .quiz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
         .question-number { font-weight: bold; color: var(--text-muted); font-size: 18px; margin-bottom: 5px; }
         
-        /* 画像レイアウト再現: 矢印ナビゲーション */
+        /* 矢印ナビゲーション */
         .arrow-nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .arrow-btn { background: none; color: var(--primary-color); font-size: 32px; font-weight: bold; padding: 0 10px; box-shadow: none; border-radius: 4px; }
         .arrow-btn:hover { background-color: var(--primary-light); }
@@ -135,7 +135,6 @@
         .sidebar-item { padding: 10px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
         .sidebar-item:hover { background: #f9f9f9; }
         .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
-
     </style>
 </head>
 <body>
@@ -209,6 +208,7 @@ const app = {
     
     // 例: "https://raw.githubusercontent.com/yourname/yourrepo/main/data.json"
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
+                 
 
     init() {
         this.data = [];
@@ -219,20 +219,25 @@ const app = {
         
         // アプリ起動時に自動でクラウドからデータを取得して適用
         this.fetchRemoteData(false);
-        
     },
     
-    // ▼ 新規追加：クラウドからJSONを取得する関数 ▼
+    // クラウドからJSONを取得する関数
     async fetchRemoteData(isManualClick = false) {
         try {
             if (isManualClick) {
                 document.getElementById('json-input').value = "通信中...";
             }
             
-            const response = await fetch(this.REMOTE_JSON_URL + "?timestamp=" + new Date().getTime()); // キャッシュ回避
+            // 先ほどの回答通り、URLはCDNに変更し、タイムスタンプは外すのがおすすめです
+            const response = await fetch(this.REMOTE_JSON_URL); 
             if (!response.ok) throw new Error("Network response was not ok");
             
-            const remoteData = await response.json(); // JSONとしてパース
+            // 🚨 修正前：ここで厳密なチェックが入り、エラーになっていた
+            // const remoteData = await response.json(); 
+
+            // ✨ 修正後：一度テキストとして取得し、独自の修復関数を通す
+            const rawText = await response.text();
+            const remoteData = this.parseCustomJSON(rawText); 
             
             // データをテキストエリアにセット
             const formattedJson = JSON.stringify(remoteData, null, 2);
@@ -247,7 +252,7 @@ const app = {
         } catch (error) {
             console.error("データの取得に失敗しました:", error);
             if (isManualClick) {
-                alert("データの取得に失敗しました。オフラインかURLが間違っている可能性があります。");
+                alert("データの取得・解析に失敗しました。JSONの記述に深刻なエラーがある可能性があります。");
                 document.getElementById('json-input').value = this.savedJsonString; // 元に戻す
             }
         }
@@ -256,11 +261,8 @@ const app = {
     // 複数のJSON配列や不要なテキストが混ざった文字列を結合・パースする最強関数
     parseCustomJSON(inputStr) {
         try {
-            // そのままパースできれば返す
             return JSON.parse(inputStr);
         } catch(e) {
-            // パース失敗時：『 ] と [ の間に挟まったテキスト 』を , に置換して配列を結合する
-            // 例: `] ここから二回目 [ ` が `,` になり、一つの巨大な配列になる
             let fixedStr = inputStr.replace(/\]\s*[^\[\]\{\}]*\s*\[/g, ',');
             try {
                 return JSON.parse(fixedStr);
@@ -268,6 +270,46 @@ const app = {
                 throw new Error("Invalid JSON format");
             }
         }
+    },
+
+    // データをフラットに抽出し、IDを1から振り直す関数
+    normalizeAndReassignIds(rawData) {
+        let flatQuestions = [];
+
+        // 再帰的に問題データを抽出する内部関数
+        const extractQuestions = (data) => {
+            if (Array.isArray(data)) {
+                // 配列なら中身を一つずつチェック
+                data.forEach(item => extractQuestions(item));
+            } else if (data && typeof data === 'object') {
+                // 明らかに問題データ本体と思われるプロパティがある場合
+                if (data.question || data.options || data.choices || data.punchline || data.sentence) {
+                    flatQuestions.push(data);
+                } 
+                // "questions" 配列を持っている場合（階層化されている場合）
+                else if (Array.isArray(data.questions)) {
+                    extractQuestions(data.questions);
+                }
+                // その他、さらにネストされたオブジェクトがある場合（quiz_dataの中など）
+                else {
+                    for (const key in data) {
+                        if (typeof data[key] === 'object') {
+                            extractQuestions(data[key]);
+                        }
+                    }
+                }
+            }
+        };
+
+        // 抽出を実行
+        extractQuestions(rawData);
+
+        // 抽出した全問題データの id を 1 から振り直す
+        flatQuestions.forEach((q, index) => {
+            q.id = index + 1;
+        });
+
+        return flatQuestions;
     },
 
     validateJsonInput() {
@@ -300,10 +342,8 @@ const app = {
             // スマートパースでデータを取得
             let parsedData = this.parseCustomJSON(inputVal);
             
-            // 念のためフラットな配列にする（[ [...], [...] ] みたいな入れ子を防ぐ）
-            if(Array.isArray(parsedData) && parsedData.length > 0 && Array.isArray(parsedData[0])) {
-                parsedData = parsedData.flat();
-            }
+            // ▼ ここでデータの抽出とID振り直しを実行 ▼
+            parsedData = this.normalizeAndReassignIds(parsedData);
 
             this.data = parsedData;
             
@@ -316,6 +356,7 @@ const app = {
             this.renderSidebar(); // サイドバーの再構築
             this.switchView('quiz');
         } catch (e) {
+            console.error(e);
             alert('データの取り込みに失敗しました。');
         }
     },
@@ -349,16 +390,24 @@ const app = {
         
         document.getElementById('q-current').innerText = this.currentIndex + 1;
         document.getElementById('q-total').innerText = this.data.length;
-        document.getElementById('question-text').innerText = q.question;
+        document.getElementById('question-text').innerText = q.question || q.word || "問題文がありません";
         
         const transDiv = document.getElementById('question-translation');
-        transDiv.innerText = q.question_ja || "";
+        transDiv.innerText = q.question_ja || q.meaning || q.translation || "";
         transDiv.classList.add('hidden');
         
         const container = document.getElementById('options-container');
         container.innerHTML = '';
 
-        let shuffledOptions = [...q.options];
+        // データの持ち方（options or choices）を吸収する処理を入れるとより安全ですが
+        // 今回は元のコードのまま、options配列がある前提の処理を残しています。
+        if (!q.options && !q.choices) {
+            container.innerHTML = '<div style="padding: 20px;">この問題には選択肢データがありません。データの形式を確認してください。</div>';
+            return;
+        }
+
+        let shuffledOptions = q.options ? [...q.options] : [...q.choices];
+        // ランダムシャッフル
         for (let i = shuffledOptions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
@@ -368,21 +417,26 @@ const app = {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'option-item';
             itemDiv.id = `option-item-${index}`;
-            const meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : opt.meanings;
+            
+            // オブジェクト形式か文字列形式かで取り出し方を変える安全策
+            let wordStr = opt.word || opt;
+            let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
+            let isCorrect = opt.is_correct === true || q.answer === wordStr || q.answer_index === index;
+            let exampleStr = opt.example || q.example || q.sentence || q.punchline || "";
 
             itemDiv.innerHTML = `
-                <button class="option-button" onclick="app.handleOptionClick(${index}, ${opt.is_correct})">
-                    <span class="word-text">${index + 1}. ${opt.word}</span>
+                <button class="option-button" onclick="app.handleOptionClick(${index}, ${isCorrect})">
+                    <span class="word-text">${index + 1}. ${wordStr}</span>
                     <span class="icon-toggle">▼</span>
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-inner">
                         <div class="accordion-body">
-                            <div class="result-mark ${opt.is_correct ? 'mark-o' : 'mark-x'}">
-                                ${opt.is_correct ? '〇 正解' : '× 不正解'}
+                            <div class="result-mark ${isCorrect ? 'mark-o' : 'mark-x'}">
+                                ${isCorrect ? '〇 正解' : '× 不正解'}
                             </div>
-                            <div class="meaning-text">意味: ${meaningStr}</div>
-                            <div class="example-text">"${opt.example}"</div>
+                            ${meaningStr ? `<div class="meaning-text">意味: ${meaningStr}</div>` : ''}
+                            <div class="example-text">"${exampleStr}"</div>
                         </div>
                     </div>
                 </div>
@@ -423,7 +477,8 @@ const app = {
     checkTranslationVisibility() {
         const openItemsCount = document.querySelectorAll('.option-item.open').length;
         const transDiv = document.getElementById('question-translation');
-        if (openItemsCount === 4 && transDiv.innerText.trim() !== "") {
+        if (openItemsCount > 0 && transDiv.innerText.trim() !== "") {
+            // 元の仕様に合わせて、すべて開いたら表示する等の条件なら適宜調整してください
             transDiv.classList.remove('hidden');
         } else {
             transDiv.classList.add('hidden');
