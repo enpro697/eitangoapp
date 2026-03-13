@@ -17085,7 +17085,7 @@
       }
     ]
   }
-][
+,
   {
     "id": 1,
     "question": "My life is basically a shallow ________ of bad decisions and expensive coffee.",
@@ -17306,7 +17306,7 @@
       { "word": "round-trip", "is_correct": true, "meanings": ["往復の"], "example": "A round-trip to the vending machine is the only exercise I've had all week. / 自動販売機への往復が、今週唯一の運動だ。" }
     ]
   }
-][
+,
   {
     "id": 101,
     "question": "The new ________ is so strict that it docked my pay for taking a three-second 'aggressive blink' at my desk.",
@@ -17524,7 +17524,7 @@
       { "word": "peddle", "is_correct": false, "meanings": ["売り歩く"], "example": "He tried to peddle his 'magic' beans at the office, but everyone just wanted coffee. / 彼はオフィスで「魔法の」豆を売り歩こうとしたが、皆ただコーヒーが欲しかっただけだった。" }
     ]
   }
-][
+,
   {
     "id": 75,
     "question": "My trip to the kitchen for 'just one snack' turned into a ________ journey involving three sandwiches and a bag of chips.",
@@ -17745,7 +17745,7 @@
       { "word": "worthy", "is_correct": false, "meanings": ["価値がある"], "example": "My cat does not consider me worthy of sitting on the couch while she is napping. / 猫は、彼女が昼寝をしている間、私がソファに座る価値があるとは認めていない。" }
     ]
   }
-][
+,
   {
     "id": 101,
     "question": "Betting your entire month's salary on a rock-paper-scissors game is a ________ decision.",
