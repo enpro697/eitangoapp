@@ -1,5 +1,576 @@
 [
   {
+    "question": "His attempt at eating soup with a fork was so _______ that even the dog judged him.",
+    "question_ja": "フォークでスープを飲もうとする彼の試みはあまりにも_______だったので、犬でさえ彼を冷たい目で見た。",
+    "options": [
+      {
+        "word": "vulgar",
+        "meanings": ["下品な", "粗野な"],
+        "is_correct": true,
+        "example": "Telling a vulgar joke at a funeral is a great way to become the next ghost. / 葬式で下品な冗談を言うのは、次の幽霊になるための素晴らしい方法だ。"
+      },
+      {
+        "word": "vulture",
+        "meanings": ["ハゲタカ", "貪欲な人"],
+        "is_correct": false,
+        "example": "My aunt circled the buffet table like a vulture waiting for the shrimp to be refilled. / 叔母はエビが補充されるのを待つハゲタカのようにビュッフェテーブルの周りを旋回した。"
+      },
+      {
+        "word": "vague",
+        "meanings": ["曖昧な", "漠然とした"],
+        "is_correct": false,
+        "example": "His directions were so vague we ended up in a different country by dinnertime. / 彼の道案内はあまりに曖昧だったので、夕食時には別の国に着いてしまった。"
+      },
+      {
+        "word": "burglar",
+        "meanings": ["泥棒", "空き巣"],
+        "is_correct": false,
+        "example": "The burglar left a polite note apologizing for stealing the TV but criticizing the interior design. / 泥棒はテレビを盗んだことを謝罪しつつ、インテリアデザインを批判する丁寧なメモを残した。"
+      }
+    ]
+  },
+  {
+    "question": "The duct-tape spaceship may look like garbage, but the engineer assured us it is _______.",
+    "question_ja": "ダクトテープでできた宇宙船はゴミのように見えるかもしれないが、エンジニアはそれが_______であると保証した。",
+    "options": [
+      {
+        "word": "functionally sound",
+        "meanings": ["機能的には問題ない", "実用上健全な"],
+        "is_correct": true,
+        "example": "My coffee maker sounds like a dying tractor, but it's functionally sound and brews liquid gold. / 私のコーヒーメーカーは死にかけのトラクターのような音がするが、機能的には問題なく、液体の黄金を淹れてくれる。"
+      },
+      {
+        "word": "financially sound",
+        "meanings": ["財政的に健全な"],
+        "is_correct": false,
+        "example": "Buying a solid gold toilet is definitely not a financially sound decision, but it makes an impression. / 純金のトイレを買うのは間違いなく財政的に健全な決断ではないが、インパクトはある。"
+      },
+      {
+        "word": "fundamentally bound",
+        "meanings": ["根本的に縛られた"],
+        "is_correct": false,
+        "example": "We are fundamentally bound to the sofa by the unyielding gravity of a weekend binge-watch. / 私たちは週末のイッキ見という揺るぎない重力によって、根本的にソファに縛り付けられている。"
+      },
+      {
+        "word": "fractionally round",
+        "meanings": ["わずかに丸い"],
+        "is_correct": false,
+        "example": "The baker argued that his square donuts were just fractionally round to avoid a lawsuit. / パン屋は訴訟を避けるため、自分の四角いドーナツはわずかに丸いだけだと主張した。"
+      }
+    ]
+  },
+  {
+    "question": "The fans at the discount toilet paper sale acted like a pack of _______ wolves.",
+    "question_ja": "割引トイレットペーパーのセールに集まった客たちは、まるで_______オオカミの群れのように振る舞った。",
+    "options": [
+      {
+        "word": "rabid",
+        "meanings": ["狂信的な", "猛烈な", "狂犬病の"],
+        "is_correct": true,
+        "example": "He is a rabid collector of rubber ducks, which makes his bathtub extremely crowded. / 彼はゴム製アヒルの狂信的なコレクターなので、彼のバスタブは極度に混雑している。"
+      },
+      {
+        "word": "rapid",
+        "meanings": ["速い", "急速な"],
+        "is_correct": false,
+        "example": "His rapid weight gain was entirely funded by the local bakery's loyalty program. / 彼の急速な体重増加は、地元のパン屋のポイントプログラムによって完全に支えられていた。"
+      },
+      {
+        "word": "rabbit",
+        "meanings": ["ウサギ"],
+        "is_correct": false,
+        "example": "The magician pulled a rabbit out of his hat, but the rabbit immediately asked for union wages. / 手品師は帽子からウサギを取り出したが、そのウサギはすぐに労働組合の賃金を要求した。"
+      },
+      {
+        "word": "rigid",
+        "meanings": ["硬い", "厳格な"],
+        "is_correct": false,
+        "example": "My cat's rigid sleeping schedule involves 23 hours of napping and 1 hour of demanding food. / 私の猫の厳格な睡眠スケジュールは、23時間の昼寝と1時間の食事要求で構成されている。"
+      }
+    ]
+  },
+  {
+    "question": "A half-eaten burrito was suddenly _______ my face during the food court debate.",
+    "question_ja": "フードコートでの議論の最中、食べかけのブリトーが突然私の顔に_______。",
+    "options": [
+      {
+        "word": "hurled toward",
+        "meanings": ["〜に向かって投げつけられた"],
+        "is_correct": true,
+        "example": "A dodgeball was hurled toward my head while I was peacefully contemplating my poor life choices. / 哀れな人生の選択について平和に熟考している最中に、ドッジボールが私の頭に向かって投げつけられた。"
+      },
+      {
+        "word": "hurdled toward",
+        "meanings": ["〜に向かってハードルを越えた"],
+        "is_correct": false,
+        "example": "He hurdled toward the buffet line like an Olympic athlete who had missed breakfast. / 彼は朝食を抜いたオリンピック選手のように、ビュッフェの列に向かってハードルを越えて突進した。"
+      },
+      {
+        "word": "hauled toward",
+        "meanings": ["〜に向かって引きずられた"],
+        "is_correct": false,
+        "example": "The screaming toddler was hauled toward the exit of the toy store by a deeply exhausted father. / 絶叫する幼児は、極度に疲労した父親によっておもちゃ屋の出口に向かって引きずられていった。"
+      },
+      {
+        "word": "howled toward",
+        "meanings": ["〜に向かって遠吠えした"],
+        "is_correct": false,
+        "example": "My dog sat on the porch and howled toward the moon, requesting a midnight snack delivery. / 私の犬はポーチに座り、夜食の配達を要求して月に向かって遠吠えした。"
+      }
+    ]
+  },
+  {
+    "question": "The poet used beautiful _______ to describe the majestic way his cat threw up on the rug.",
+    "question_ja": "その詩人は、飼い猫がラグの上に吐くという壮大な様子を描写するために美しい_______を用いた。",
+    "options": [
+      {
+        "word": "imagery",
+        "meanings": ["比喩表現", "イメージ", "像"],
+        "is_correct": true,
+        "example": "The restaurant's menu used vivid imagery to disguise the fact that the dish was just burnt toast. / そのレストランのメニューは、料理が単なる焦げたトーストであることを隠すために鮮やかな描写を用いていた。"
+      },
+      {
+        "word": "imaginary",
+        "meanings": ["架空の", "想像上の"],
+        "is_correct": false,
+        "example": "My bank account balance is sadly not imaginary, though I often wish it were a joke. / 私の銀行口座の残高は悲しいことに架空ではないが、よく冗談であってほしいと願う。"
+      },
+      {
+        "word": "imagination",
+        "meanings": ["想像力"],
+        "is_correct": false,
+        "example": "It takes a lot of imagination to convince yourself that eating celery is just like eating chips. / セロリを食べるのはポテトチップスを食べるのと同じだと自分を納得させるには、多大な想像力が必要だ。"
+      },
+      {
+        "word": "imitative",
+        "meanings": ["模倣の"],
+        "is_correct": false,
+        "example": "His imitative dancing at the club looked less like Michael Jackson and more like a malfunctioning robot. / クラブでの彼の模倣ダンスは、マイケル・ジャクソンというよりは故障したロボットのように見えた。"
+      }
+    ]
+  },
+  {
+    "question": "The staring contest with the pigeon got so _______ that I had to blink first and accept my defeat.",
+    "question_ja": "ハトとのにらめっこはあまりにも_______になり、私は先にまばたきをして敗北を認めざるを得なかった。",
+    "options": [
+      {
+        "word": "intense",
+        "meanings": ["強烈な", "激しい"],
+        "is_correct": true,
+        "example": "The flavor of this hot sauce is so intense it actually deleted my memories of yesterday. / このホットソースの風味はあまりにも強烈で、昨日の記憶が実際に消去されてしまった。"
+      },
+      {
+        "word": "in tents",
+        "meanings": ["テントの中で"],
+        "is_correct": false,
+        "example": "We slept in tents to connect with nature, but nature mostly connected with us through mosquito bites. / 自然と触れ合うためにテントで寝たが、自然は主に蚊の刺し傷を通じて私たちと触れ合ってきた。"
+      },
+      {
+        "word": "incense",
+        "meanings": ["お香", "激怒させる"],
+        "is_correct": false,
+        "example": "He burned so much incense in his room that the smoke alarm filed a formal complaint. / 彼が部屋であまりにも多くのお香を焚いたため、火災報知器が正式な苦情を申し立てた。"
+      },
+      {
+        "word": "intend",
+        "meanings": ["意図する"],
+        "is_correct": false,
+        "example": "I fully intend to start exercising tomorrow, which is the exact same thing I said yesterday. / 明日こそは絶対に運動を始めるつもりだ。昨日全く同じことを言ったが。"
+      }
+    ]
+  },
+  {
+    "question": "It took three hours for the frozen pizza to _______, by which time I had already eaten the cardboard box.",
+    "question_ja": "冷凍ピザが_______のに3時間かかり、その頃には私はすでにダンボール箱を食べてしまっていた。",
+    "options": [
+      {
+        "word": "thaw",
+        "meanings": ["解ける", "和らぐ"],
+        "is_correct": true,
+        "example": "The icy tension in the room began to thaw when the boss accidentally snorted while laughing. / 上司が笑いながらうっかり鼻を鳴らしたとき、部屋の氷のような緊張が解け始めた。"
+      },
+      {
+        "word": "flaw",
+        "meanings": ["欠陥", "傷"],
+        "is_correct": false,
+        "example": "The only flaw in my brilliant plan to become a millionaire is that I have absolutely no money. / 百万長者になるという私の完璧な計画の唯一の欠陥は、私には全くお金がないことだ。"
+      },
+      {
+        "word": "throw",
+        "meanings": ["投げる"],
+        "is_correct": false,
+        "example": "I tried to throw my worries away, but they acted like a boomerang and hit me in the back. / 悩みを投げ捨てようとしたが、それらはブーメランのように私の背中に当たった。"
+      },
+      {
+        "word": "raw",
+        "meanings": ["生の", "未加工の"],
+        "is_correct": false,
+        "example": "Eating a raw potato is a great way to punish yourself for forgetting to pay the gas bill. / 生のジャガイモを食べるのは、ガス代の支払いを忘れた自分を罰する素晴らしい方法だ。"
+      }
+    ]
+  },
+  {
+    "question": "Achieving the perfect ratio of cereal to milk was the absolute _______ of his culinary career.",
+    "question_ja": "シリアルと牛乳の完璧な比率を達成したことは、彼の料理人としてのキャリアの絶対的な_______だった。",
+    "options": [
+      {
+        "word": "zenith",
+        "meanings": ["頂点", "絶頂"],
+        "is_correct": true,
+        "example": "My motivation reached its zenith at 9 AM and completely plummeted by 9:05 AM. / 私のモチベーションは午前9時に頂点に達し、9時5分には完全に急降下した。"
+      },
+      {
+        "word": "zealot",
+        "meanings": ["狂信者", "熱狂者"],
+        "is_correct": false,
+        "example": "He is a pizza zealot who will passionately argue that pineapple is a crime against humanity. / 彼はパイナップルは人類に対する犯罪であると情熱的に主張するピザの狂信者だ。"
+      },
+      {
+        "word": "beneath",
+        "meanings": ["〜の下に"],
+        "is_correct": false,
+        "example": "I found a half-eaten sandwich beneath the sofa, which explained the mysterious smell in the living room. / ソファの下に食べかけのサンドイッチを見つけ、リビングの謎の匂いの原因が判明した。"
+      },
+      {
+        "word": "zephyr",
+        "meanings": ["そよ風"],
+        "is_correct": false,
+        "example": "A gentle zephyr blew my winning lottery ticket directly into the jaws of a passing dog. / 優しいそよ風が、私の当たった宝くじを通りすがりの犬の顎の中に直接吹き込んだ。"
+      }
+    ]
+  },
+  {
+    "question": "I had to _______ a doctor's note because 'my cat was sitting on me' wasn't a valid excuse for missing work.",
+    "question_ja": "「猫が私の上に乗っていた」というのは仕事を休む正当な理由ではなかったため、私は診断書を_______しなければならなかった。",
+    "options": [
+      {
+        "word": "forge",
+        "meanings": ["偽造する", "築く", "鍛造する"],
+        "is_correct": true,
+        "example": "He tried to forge his mother's signature on the report card, but wrote 'Mom' instead of her name. / 彼は成績表に母親のサインを偽造しようとしたが、名前の代わりに「ママ」と書いてしまった。"
+      },
+      {
+        "word": "gorge",
+        "meanings": ["詰め込む", "峡谷"],
+        "is_correct": false,
+        "example": "We decided to gorge ourselves on tacos until walking upright was no longer a physical possibility. / 直立歩行が物理的に不可能になるまでタコスを詰め込むことに決めた。"
+      },
+      {
+        "word": "force",
+        "meanings": ["力", "強要する"],
+        "is_correct": false,
+        "example": "I cannot force my cat to take a bath, mostly because I value having un-shredded arms. / 私は猫に無理やり風呂に入らせることはできない。主な理由は、切り裂かれていない腕を大切にしているからだ。"
+      },
+      {
+        "word": "forget",
+        "meanings": ["忘れる"],
+        "is_correct": false,
+        "example": "I frequently forget my own age, which makes filling out online forms an exciting guessing game. / 私は頻繁に自分の年齢を忘れるため、オンラインフォームへの入力がスリリングな推測ゲームになる。"
+      }
+    ]
+  },
+  {
+    "question": "There is a very _______ difference between a 'friendly pat' and 'slapping someone with a wet fish.'",
+    "question_ja": "「友好的な愛撫」と「濡れた魚で人をひっぱたくこと」の間には、非常に_______な違いがある。",
+    "options": [
+      {
+        "word": "distinct",
+        "meanings": ["はっきりした", "全く異なる"],
+        "is_correct": true,
+        "example": "My cooking has a distinct flavor, often described by guests as 'charcoal with a hint of despair.' / 私の料理には独特の風味があり、客からはよく「絶望のニュアンスが漂う木炭」と評される。"
+      },
+      {
+        "word": "instinct",
+        "meanings": ["本能"],
+        "is_correct": false,
+        "example": "My survival instinct kicked in when my wife asked if that dress made her look fat, so I faked a heart attack. / 妻が「このドレスを着ると太って見える？」と聞いたとき、私の生存本能が働き、心臓発作のふりをした。"
+      },
+      {
+        "word": "extinct",
+        "meanings": ["絶滅した"],
+        "is_correct": false,
+        "example": "My patience for fixing the office printer became officially extinct three paper jams ago. / オフィスのプリンターを修理する私の忍耐力は、3回の紙詰まりの前に正式に絶滅した。"
+      },
+      {
+        "word": "precinct",
+        "meanings": ["管区", "専用区域"],
+        "is_correct": false,
+        "example": "He marched into the police precinct to report a stolen donut, completely ignoring the bank robbery happening outside. / 彼は外で起きている銀行強盗を完全に無視し、盗まれたドーナツを報告するために警察の管区に乗り込んだ。"
+      }
+    ]
+  },
+  {
+    "question": "My diet now consists _______ of things I can easily eat while lying horizontally on the couch.",
+    "question_ja": "私の食事は今や、ソファで横になりながら簡単に食べられるもの_______で構成されている。",
+    "options": [
+      {
+        "word": "exclusively",
+        "meanings": ["もっぱら", "独占的に"],
+        "is_correct": true,
+        "example": "The cat believes the brand-new $200 velvet armchair was bought exclusively for her to shed on. / 猫は、新調した200ドルのベルベットの肘掛け椅子が、自分が毛を落とすためだけに買われたと信じている。"
+      },
+      {
+        "word": "explosively",
+        "meanings": ["爆発的に"],
+        "is_correct": false,
+        "example": "He sneezed so explosively that the wig flew off his head and stuck to the ceiling fan. / 彼はあまりにも爆発的にくしゃみをしたため、カツラが頭から飛んで天井の扇風機にくっついた。"
+      },
+      {
+        "word": "inclusively",
+        "meanings": ["包括的に", "含めて"],
+        "is_correct": false,
+        "example": "The toddler decided to inclusively color the entire living room walls, not just the coloring book. / 幼児は塗り絵だけでなく、リビングの壁全体を包括的に塗ることにした。"
+      },
+      {
+        "word": "conclusively",
+        "meanings": ["決定的に"],
+        "is_correct": false,
+        "example": "The empty pizza box on the floor conclusively proved that I had abandoned my diet last night. / 床にある空のピザの箱は、私が昨夜ダイエットを放棄したことを決定的に証明していた。"
+      }
+    ]
+  },
+  {
+    "question": "After the embarrassing karaoke incident, he lived a _______ life in the mountains to avoid eye contact with humanity.",
+    "question_ja": "恥ずかしいカラオケ事件の後、彼は人類とのアイコンタクトを避けるため、山で_______な生活を送った。",
+    "options": [
+      {
+        "word": "solitary",
+        "meanings": ["孤独な", "単独の"],
+        "is_correct": true,
+        "example": "The single un-popped kernel at the bottom of the popcorn bowl is a solitary survivor of a buttery massacre. / ポップコーンボウルの底にある弾けなかった一粒は、バターまみれの大虐殺の孤独な生存者である。"
+      },
+      {
+        "word": "sanitary",
+        "meanings": ["衛生的な"],
+        "is_correct": false,
+        "example": "Eating soup out of a shoe is highly creative, but definitely not considered sanitary by any health department. / 靴からスープを飲むのは非常に創造的だが、どの保健所からも衛生的とは見なされないのは確かだ。"
+      },
+      {
+        "word": "salutary",
+        "meanings": ["有益な", "健康に良い"],
+        "is_correct": false,
+        "example": "The salutary effect of a two-hour nap is realizing you have completely forgotten what year it is. / 2時間の昼寝の有益な効果は、今が何年なのか完全に忘れてしまったことに気づくことだ。"
+      },
+      {
+        "word": "solidary",
+        "meanings": ["連帯の", "共同の"],
+        "is_correct": false,
+        "example": "In a solidary protest against alarm clocks, the entire dorm decided to sleep until noon. / 目覚まし時計に対する連帯の抗議として、寮全体が正午まで寝ることに決めた。"
+      }
+    ]
+  },
+  {
+    "question": "Escaping the narrow _______ of his cubicle, Steve ran screaming into the parking lot.",
+    "question_ja": "彼自身の狭いパーティションの_______から逃れ、スティーブは悲鳴を上げながら駐車場へと走り出した。",
+    "options": [
+      {
+        "word": "confinements",
+        "meanings": ["監禁", "制限", "狭い場所"],
+        "is_correct": true,
+        "example": "My dog acts like a tortured prisoner in the cruel confinements of our luxurious, heated living room. / 私の犬は、豪華で暖房の効いたリビングルームという残酷な監禁場所で、拷問を受けた囚人のように振る舞う。"
+      },
+      {
+        "word": "condiments",
+        "meanings": ["調味料"],
+        "is_correct": false,
+        "example": "Adding twelve different condiments to a hot dog is a desperate cry for culinary help. / ホットドッグに12種類の異なる調味料を追加するのは、料理における絶望的な助けの求めである。"
+      },
+      {
+        "word": "refinements",
+        "meanings": ["洗練", "改良"],
+        "is_correct": false,
+        "example": "The latest refinements to the app included a button that does absolutely nothing but makes a honking sound. / アプリの最新の改良点には、全く何もしないがクラクションの音が鳴るボタンが含まれていた。"
+      },
+      {
+        "word": "alignments",
+        "meanings": ["調整", "連携"],
+        "is_correct": false,
+        "example": "My spiritual alignments suggest I should be rich, but my bank account aggressively disagrees. / 私のスピリチュアルな調整は私が金持ちになるべきだと示唆しているが、私の銀行口座は激しく同意していない。"
+      }
+    ]
+  },
+  {
+    "question": "The exact point where my ambition and my laziness _______ is usually around 2:00 PM on a Sunday.",
+    "question_ja": "私の野心と怠惰が_______する正確なポイントは、通常日曜日の午後2時頃である。",
+    "options": [
+      {
+        "word": "intersect",
+        "meanings": ["交差する"],
+        "is_correct": true,
+        "example": "The diagrams of 'Things I Want to Buy' and 'Things I Can Afford' are two circles that never intersect. / 「買いたいもの」と「買えるもの」の図は、決して交差することのない2つの円である。"
+      },
+      {
+        "word": "interject",
+        "meanings": ["言葉を差し挟む"],
+        "is_correct": false,
+        "example": "'Excuse me,' I tried to interject, but the parrot continued its impressive rant about the government. / 「すみません」と言葉を差し挟もうとしたが、オウムは政府に関する見事な暴言を続けた。"
+      },
+      {
+        "word": "inspect",
+        "meanings": ["検査する"],
+        "is_correct": false,
+        "example": "Before eating the questionable gas station sushi, you should probably inspect it for signs of life. / ガソリンスタンドの怪しい寿司を食べる前に、生命の兆候がないか検査するべきだ。"
+      },
+      {
+        "word": "insect",
+        "meanings": ["昆虫"],
+        "is_correct": false,
+        "example": "Finding an insect in your salad is terrible, but finding half an insect is a psychological trauma. / サラダの中に昆虫を見つけるのは最悪だが、昆虫の半分を見つけるのは心理的トラウマだ。"
+      }
+    ]
+  },
+  {
+    "question": "All the company's profits were secretly _______ the CEO's massive collection of medieval swords.",
+    "question_ja": "会社の利益のすべては、CEOの膨大な中世の剣のコレクションに秘密裏に_______いた。",
+    "options": [
+      {
+        "word": "funneled directly into",
+        "meanings": ["〜に直接注ぎ込まれる"],
+        "is_correct": true,
+        "example": "My entire paycheck was magically funneled directly into my coffee addiction and obscure internet purchases. / 私の給料全額が、魔法のように私のコーヒー中毒と謎のネットショッピングに直接注ぎ込まれた。"
+      },
+      {
+        "word": "tunneled directly into",
+        "meanings": ["〜に直接トンネルを掘って入る"],
+        "is_correct": false,
+        "example": "The determined hamster tunneled directly into the bag of seeds, establishing a new sovereign nation inside. / 決意を固めたハムスターは種の袋に直接トンネルを掘って入り、その中に新たな主権国家を樹立した。"
+      },
+      {
+        "word": "fueled directly into",
+        "meanings": ["〜に直接燃料を供給する"],
+        "is_correct": false,
+        "example": "His rage over the missing donut was fueled directly into an extremely aggressive PowerPoint presentation. / 消えたドーナツに対する彼の怒りは、極めて攻撃的なパワーポイントのプレゼンに直接燃料として注ぎ込まれた。"
+      },
+      {
+        "word": "fumbled directly into",
+        "meanings": ["〜に直接手探りで入る（ドジを踏む）"],
+        "is_correct": false,
+        "example": "Trying to look cool, he fumbled directly into a display of fragile glass vases, destroying his dignity instantly. / クールに見せようとして、彼は手探りで壊れやすいガラスの花瓶の陳列に突っ込み、即座に尊厳を破壊した。"
+      }
+    ]
+  },
+  {
+    "question": "Coming home five minutes past curfew resulted in a blinding spotlight and a harsh _______ from my mom.",
+    "question_ja": "門限を5分過ぎて帰宅した結果、まばゆいスポットライトと母からの厳しい_______を受けることになった。",
+    "options": [
+      {
+        "word": "interrogation",
+        "meanings": ["尋問", "取り調べ"],
+        "is_correct": true,
+        "example": "The cat's interrogation involved me constantly asking 'Who broke the vase?' while he licked his paw indifferently. / 猫の取り調べは、猫が無関心に自分の足を舐める中、私が「花瓶を割ったのは誰だ？」と絶えず尋ねるというものだった。"
+      },
+      {
+        "word": "irrigation",
+        "meanings": ["灌漑", "水を引くこと"],
+        "is_correct": false,
+        "example": "His tears of frustration provided excellent irrigation for his neglected house plants. / 彼のフラストレーションの涙は、放置されていた観葉植物にとって素晴らしい灌漑となった。"
+      },
+      {
+        "word": "integration",
+        "meanings": ["統合"],
+        "is_correct": false,
+        "example": "The successful integration of chocolate and pizza was my finest, yet most regretted, late-night experiment. / チョコレートとピザの統合の成功は、私の最高の、しかし最も後悔した深夜の実験だった。"
+      },
+      {
+        "word": "interruption",
+        "meanings": ["中断", "邪魔"],
+        "is_correct": false,
+        "example": "An interruption by a dancing bear would have actually improved that incredibly boring meeting. / 踊るクマによる中断があったほうが、あの信じられないほど退屈な会議は実際にはマシになっただろう。"
+      }
+    ]
+  },
+  {
+    "question": "Putting the milk in the cupboard and the cereal in the fridge _______ when you are running on two hours of sleep.",
+    "question_ja": "睡眠時間2時間で動いているとき、牛乳を食器棚に入れ、シリアルを冷蔵庫に入れるのは_______。",
+    "options": [
+      {
+        "word": "makes total sense",
+        "meanings": ["完全に理にかなっている"],
+        "is_correct": true,
+        "example": "Buying an exercise bike to use purely as a very expensive coat rack makes total sense in my chaotic world. / エアロバイクを単なる非常に高価なコート掛けとして使うために買うのは、私の混沌とした世界では完全に理にかなっている。"
+      },
+      {
+        "word": "makes total cents",
+        "meanings": ["完全に小銭を作る（ダジャレ）"],
+        "is_correct": false,
+        "example": "Smashing the piggy bank literally makes total cents, though the mess on the floor is regrettable. / 豚の貯金箱を叩き割ることは文字通り「完全に小銭を作る」ことだが、床の散らかり具合は後悔の種だ。"
+      },
+      {
+        "word": "takes total offense",
+        "meanings": ["完全に腹を立てる"],
+        "is_correct": false,
+        "example": "The goose takes total offense at anyone who simply exists within a fifty-meter radius of its pond. / そのガチョウは、池の半径50メートル以内に単に存在するすべての人に完全に腹を立てる。"
+      },
+      {
+        "word": "bakes total sense",
+        "meanings": ["（無意味なダジャレ）"],
+        "is_correct": false,
+        "example": "The slogan 'Our bread bakes total sense' was fired by the marketing team almost immediately. / 「私たちのパンは完全に意味を焼く（なす）」というスローガンは、マーケティングチームによってほぼ即座に却下された。"
+      }
+    ]
+  },
+  {
+    "question": "The refrigerator was completely _______ of anything edible, holding only a half-empty jar of mysterious green paste.",
+    "question_ja": "冷蔵庫には食べられるものが完全に_______おり、謎の緑色のペーストの半分空になった瓶があるだけだった。",
+    "options": [
+      {
+        "word": "devoid",
+        "meanings": ["欠けている", "全くない"],
+        "is_correct": true,
+        "example": "His apology was so devoid of emotion that Siri could have delivered it more convincingly. / 彼の謝罪はあまりにも感情が欠けていたため、Siriの方がもっと説得力を持って伝えることができたはずだ。"
+      },
+      {
+        "word": "avoid",
+        "meanings": ["避ける"],
+        "is_correct": false,
+        "example": "I try to avoid making eye contact with the gym equipment, lest it challenge me to a duel. / ジムの器具から決闘を挑まれないように、私はそれらと目を合わせるのを避けようとしている。"
+      },
+      {
+        "word": "devoted",
+        "meanings": ["献身的な"],
+        "is_correct": false,
+        "example": "He is incredibly devoted to his lifelong mission of tasting every flavor of potato chip in existence. / 彼は、この世に存在するすべてのポテトチップスの味見をするという生涯の使命に信じられないほど献身的だ。"
+      },
+      {
+        "word": "decoyed",
+        "meanings": ["おびき出された"],
+        "is_correct": false,
+        "example": "I was decoyed into attending the boring seminar by the false promise of unlimited free donuts. / 私は、無制限の無料ドーナツという偽の約束によって退屈なセミナーにおびき出された。"
+      }
+    ]
+  },
+  {
+    "question": "After arguing with the wasp, his lip was so _______ he looked like a poorly drawn cartoon character.",
+    "question_ja": "ハチと口論した後、彼の唇はあまりにも_______おり、下手な絵のカートゥーンキャラクターのように見えた。",
+    "options": [
+      {
+        "word": "swollen",
+        "meanings": ["腫れた", "膨れ上がった"],
+        "is_correct": true,
+        "example": "My ego was incredibly swollen after parallel parking perfectly on the first try, while everyone watched. / みんなが見ている中で、一発で縦列駐車を完璧に決めた後、私の自尊心は信じられないほど膨れ上がっていた。"
+      },
+      {
+        "word": "stolen",
+        "meanings": ["盗まれた"],
+        "is_correct": false,
+        "example": "My heart was stolen by a stray dog who immediately traded it for a dropped piece of sausage. / 私の心は野良犬に盗まれたが、犬はすぐにそれを落ちていたソーセージのかけらと交換した。"
+      },
+      {
+        "word": "swallowed",
+        "meanings": ["飲み込んだ"],
+        "is_correct": false,
+        "example": "The vacuum cleaner finally swallowed its last sock, choking in a dramatic display of sparks. / 掃除機はついに最後の靴下を飲み込み、劇的に火花を散らして息絶えた。"
+      },
+      {
+        "word": "swooned",
+        "meanings": ["気絶した", "うっとりした"],
+        "is_correct": false,
+        "example": "The romantic hero took off his shirt, and half the audience swooned while the other half asked if he was cold. / ロマンチックなヒーローがシャツを脱ぐと、観客の半分はうっとりし、残りの半分は「寒くないの？」と尋ねた。"
+      }
+    ]
+  }
+][
+  {
     "id": 1,
     "question": "I tried to assemble the IKEA furniture without the manual, but at the _______, I just had a pile of wood and a new existential crisis.",
     "question_ja": "説明書なしでIKEAの家具を組み立てようとしたが、最後には木の山と新たな実存的危機が残っただけだった。",
