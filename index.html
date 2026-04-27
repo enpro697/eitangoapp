@@ -185,7 +185,7 @@
             <div>
                 <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
             </div>
-            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()">回答を見る</button>
+            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()">アコーディオンを全開閉</button>
         </div>
 
         <div class="arrow-nav-container">
@@ -206,12 +206,9 @@ const app = {
     currentIndex: 0,
     isAllAccordionsOpen: false,
     
-    // スワイプの座標を保存する変数
-    touchStartX: 0,
-    touchEndX: 0,
-    
     // 例: "https://raw.githubusercontent.com/yourname/yourrepo/main/data.json"
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
+                 
 
     init() {
         this.data = [];
@@ -222,50 +219,6 @@ const app = {
         
         // アプリ起動時に自動でクラウドからデータを取得して適用
         this.fetchRemoteData(false);
-
-        // スワイプイベントの初期化
-        this.setupSwipe();
-    },
-
-    // スワイプ操作（スマホ＆PC両対応）のセットアップ関数
-    setupSwipe() {
-        const quizView = document.getElementById('quiz-view');
-        
-        // スマホ用（タッチイベント）
-        quizView.addEventListener('touchstart', (e) => {
-            this.touchStartX = e.changedTouches[0].screenX;
-        }, {passive: true});
-
-        quizView.addEventListener('touchend', (e) => {
-            this.touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipeGesture();
-        }, {passive: true});
-
-        // PC用（マウスのドラッグイベント）
-        quizView.addEventListener('mousedown', (e) => {
-            this.touchStartX = e.screenX;
-        });
-
-        quizView.addEventListener('mouseup', (e) => {
-            this.touchEndX = e.screenX;
-            this.handleSwipeGesture();
-        });
-    },
-
-    // スワイプの判定とページ遷移処理
-    handleSwipeGesture() {
-        const threshold = 50; // スワイプと判定する最低移動距離(px)
-        const swipeDistance = this.touchEndX - this.touchStartX;
-
-        if (Math.abs(swipeDistance) > threshold) {
-            if (swipeDistance > 0) {
-                // 右にスワイプ（画面左から右へ）＝ 前の問題へ
-                this.prevPage();
-            } else {
-                // 左にスワイプ（画面右から左へ）＝ 次の問題へ
-                this.nextPage();
-            }
-        }
     },
     
     // クラウドからJSONを取得する関数
@@ -275,9 +228,14 @@ const app = {
                 document.getElementById('json-input').value = "通信中...";
             }
             
+            // 先ほどの回答通り、URLはCDNに変更し、タイムスタンプは外すのがおすすめです
             const response = await fetch(this.REMOTE_JSON_URL); 
             if (!response.ok) throw new Error("Network response was not ok");
             
+            // 🚨 修正前：ここで厳密なチェックが入り、エラーになっていた
+            // const remoteData = await response.json(); 
+
+            // ✨ 修正後：一度テキストとして取得し、独自の修復関数を通す
             const rawText = await response.text();
             const remoteData = this.parseCustomJSON(rawText); 
             
@@ -384,12 +342,12 @@ const app = {
             // スマートパースでデータを取得
             let parsedData = this.parseCustomJSON(inputVal);
             
-            // データの抽出とID振り直しを実行
+            // ▼ ここでデータの抽出とID振り直しを実行 ▼
             parsedData = this.normalizeAndReassignIds(parsedData);
 
             this.data = parsedData;
             
-            // フォーマットを綺麗に整形してテキストエリアに戻す
+            // フォーマットを綺麗に整形してテキストエリアに戻す（次からエラーにならないように）
             this.savedJsonString = JSON.stringify(this.data, null, 2);
             document.getElementById('json-input').value = this.savedJsonString; 
             
@@ -428,11 +386,6 @@ const app = {
         if (!this.data || this.data.length === 0) return;
         
         this.isAllAccordionsOpen = false;
-        
-        // ▼ 問題が切り替わったときにボタンのテキストを「回答を見る」にリセット ▼
-        const toggleBtn = document.getElementById('toggle-accordion-btn');
-        if (toggleBtn) toggleBtn.innerText = "回答を見る";
-
         const q = this.data[this.currentIndex];
         
         document.getElementById('q-current').innerText = this.currentIndex + 1;
@@ -446,6 +399,8 @@ const app = {
         const container = document.getElementById('options-container');
         container.innerHTML = '';
 
+        // データの持ち方（options or choices）を吸収する処理を入れるとより安全ですが
+        // 今回は元のコードのまま、options配列がある前提の処理を残しています。
         if (!q.options && !q.choices) {
             container.innerHTML = '<div style="padding: 20px;">この問題には選択肢データがありません。データの形式を確認してください。</div>';
             return;
@@ -463,6 +418,7 @@ const app = {
             itemDiv.className = 'option-item';
             itemDiv.id = `option-item-${index}`;
             
+            // オブジェクト形式か文字列形式かで取り出し方を変える安全策
             let wordStr = opt.word || opt;
             let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
             let isCorrect = opt.is_correct === true || q.answer === wordStr || q.answer_index === index;
@@ -499,35 +455,16 @@ const app = {
         } else {
             item.classList.add('open');
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
-            
-            // 正解を選んだ場合、他のすべてのアコーディオンを開く
-            if (isCorrect) {
-                const allItems = document.querySelectorAll('.option-item');
-                allItems.forEach(el => {
-                    if (el.id !== `option-item-${index}`) {
-                        el.classList.add('open');
-                        el.classList.add('answered-incorrect');
-                    }
-                });
-
-                // ▼ ここを修正：すべて開いた状態になったことを記録し、ボタン名を変更 ▼
-                this.isAllAccordionsOpen = true;
-                const toggleBtn = document.getElementById('toggle-accordion-btn');
-                if (toggleBtn) toggleBtn.innerText = "回答を閉じる";
-            }
+            // アコーディオンが開く動作に合わせて、クリックした要素を画面中央にスクロール
+            setTimeout(() => {
+                item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 150);
         }
         this.checkTranslationVisibility();
     },
 
     toggleAllAccordions() {
         this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
-        
-        // ▼ ここを修正：現在の状態に合わせてボタンのテキストを切り替える ▼
-        const toggleBtn = document.getElementById('toggle-accordion-btn');
-        if (toggleBtn) {
-            toggleBtn.innerText = this.isAllAccordionsOpen ? "回答を閉じる" : "回答を見る";
-        }
-
         const items = document.querySelectorAll('.option-item');
         items.forEach((item) => {
             const isCorrect = item.querySelector('.mark-o') !== null;
@@ -539,12 +476,22 @@ const app = {
             }
         });
         this.checkTranslationVisibility();
+        // 全開にした場合、正解の選択肢を探して画面中央にスクロールさせる
+        if (this.isAllAccordionsOpen) {
+            setTimeout(() => {
+                const correctItem = Array.from(items).find(item => item.querySelector('.mark-o') !== null);
+                if (correctItem) {
+                    correctItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300); // CSSアニメーション(0.3s)の完了付近でスクロール
+        }
     },
 
     checkTranslationVisibility() {
         const openItemsCount = document.querySelectorAll('.option-item.open').length;
         const transDiv = document.getElementById('question-translation');
         if (openItemsCount > 0 && transDiv.innerText.trim() !== "") {
+            // 元の仕様に合わせて、すべて開いたら表示する等の条件なら適宜調整してください
             transDiv.classList.remove('hidden');
         } else {
             transDiv.classList.add('hidden');
