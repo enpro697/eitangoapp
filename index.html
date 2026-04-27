@@ -206,6 +206,12 @@ const app = {
     currentIndex: 0,
     isAllAccordionsOpen: false,
     
+    // スワイプ判定用の座標データ
+    touchStartX: 0,
+    touchEndX: 0,
+    touchStartY: 0,
+    touchEndY: 0,
+    
     // 例: "https://raw.githubusercontent.com/yourname/yourrepo/main/data.json"
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
                  
@@ -216,7 +222,8 @@ const app = {
         const jsonInput = document.getElementById('json-input');
         jsonInput.value = this.savedJsonString;
         jsonInput.addEventListener('input', () => this.validateJsonInput());
-        
+        // タッチイベントの初期化を追加
+        this.setupTouchEvents();
         // アプリ起動時に自動でクラウドからデータを取得して適用
         this.fetchRemoteData(false);
     },
@@ -522,6 +529,39 @@ const app = {
     updateNavButtons() {
         document.getElementById('btn-prev').disabled = (this.currentIndex === 0);
         document.getElementById('btn-next').disabled = (this.currentIndex === this.data.length - 1);
+    },
+    // --- スワイプ操作（タッチイベント）関連 ---
+    setupTouchEvents() {
+        const quizView = document.getElementById('quiz-view');
+        
+        // タッチ開始時の座標を記録
+        quizView.addEventListener('touchstart', (e) => {
+            this.touchStartX = e.changedTouches[0].screenX;
+            this.touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        // タッチ終了時の座標を記録し、判定メソッドを呼び出す
+        quizView.addEventListener('touchend', (e) => {
+            this.touchEndX = e.changedTouches[0].screenX;
+            this.touchEndY = e.changedTouches[0].screenY;
+            this.handleSwipe();
+        }, { passive: true });
+    },
+
+    handleSwipe() {
+        const xDiff = this.touchStartX - this.touchEndX;
+        const yDiff = this.touchStartY - this.touchEndY;
+
+        // 縦スクロール時の「誤爆」を防ぐため、横の移動量が縦より大きく、かつ50px以上動いた場合のみ処理する
+        if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) {
+            if (xDiff > 0) {
+                // 左スワイプ（右から左へ指を動かす）＝「次の問題へ」
+                this.nextPage();
+            } else {
+                // 右スワイプ（左から右へ指を動かす）＝「前の問題へ」
+                this.prevPage();
+            }
+        }
     },
 
     // --- サイドバー（ドロワーメニュー）関連 ---
