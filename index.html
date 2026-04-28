@@ -127,7 +127,32 @@
         .mark-x { color: var(--incorrect-color); }
         .meaning-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
         .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
+/* フッターナビゲーションのスタイル */
+.app-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: right;
+    align-items: center;
+}
 
+.footer-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 2.5px 5px;
+    border-radius: 10px;
+   // background-color: #f0f0f0;
+   // transition: var(--transition);
+}
+
+.footer-link:hover {
+  //  background-color: var(--primary-light);
+    color: var(--primary-color);
+    text-decoration: none;
+}
         /* サイドバー（ドロワーメニュー） */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
@@ -192,14 +217,14 @@
             <button class="menu-btn" onclick="app.toggleSidebar(true)">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
+           
         </div>
         
         <div class="quiz-header">
             <div>
                 <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
             </div>
-            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()" style="display:none;">回答を見る</button>
+            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()" >回答を見る</button>
         </div>
 
         <div class="arrow-nav-container">
@@ -210,6 +235,9 @@
         <div id="question-text" class="question-text" onclick="app.toggleAllAccordions()" title="クリックで回答を開閉"></div>
         <div id="question-translation" class="question-translation hidden"></div>
         <div id="options-container" class="options-list"></div>
+        <div class="app-footer">
+        <a class="footer-link" onclick="app.switchView('editor')">設定・データ編集を開く</a>
+    </div>
     </div>
 </div>
 
