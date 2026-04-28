@@ -87,7 +87,21 @@
         .arrow-btn:hover { background-color: var(--primary-light); }
         .arrow-btn:disabled { color: #ccc; background: none; }
 
-        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);}
+        .question-text { 
+    font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; 
+    padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);
+    cursor: pointer; /* 追加: クリックできることを示す指マーク */
+    transition: background-color 0.2s ease; /* 追加: ホバー時のアニメーション */
+}
+.question-text:hover {
+    background-color: #e4ebf1; /* 追加: マウスオーバー時に少し色を濃くしてボタンっぽくする */
+}
+
+/* 追加: アコーディオン開閉ボタンの個別サイズ調整 */
+#toggle-accordion-btn {
+    padding: 8px 16px; /* デフォルトより少し幅と高さをコンパクトに */
+    font-size: 13px;
+}
         .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -185,7 +199,7 @@
             <div>
                 <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
             </div>
-            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()">アコーディオンを全開閉</button>
+            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()">回答を見る</button>
         </div>
 
         <div class="arrow-nav-container">
@@ -193,7 +207,7 @@
             <button class="arrow-btn" id="btn-next" onclick="app.nextPage()">＞</button>
         </div>
 
-        <div id="question-text" class="question-text"></div>
+        <div id="question-text" class="question-text" onclick="app.toggleAllAccordions()" title="クリックで回答を開閉"></div>
         <div id="question-translation" class="question-translation hidden"></div>
         <div id="options-container" class="options-list"></div>
     </div>
