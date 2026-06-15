@@ -480,7 +480,6 @@ const app = {
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        // 正解の場合のみ、クリックで一番上にスクロールする処理とポインターを追加
 <div class="accordion-body" ${isCorrect ? 'onclick="app.scrollToTop()" style="cursor: pointer;" title="クリックで設問へ戻る"' : ''}>
                             <div class="result-mark ${isCorrect ? 'mark-o' : 'mark-x'}">
                                 ${isCorrect ? '〇 正解' : '× 不正解'}
