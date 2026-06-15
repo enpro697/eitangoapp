@@ -480,7 +480,8 @@ const app = {
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="accordion-body">
+                        // 正解の場合のみ、クリックで一番上にスクロールする処理とポインターを追加
+<div class="accordion-body" ${isCorrect ? 'onclick="app.scrollToTop()" style="cursor: pointer;" title="クリックで設問へ戻る"' : ''}>
                             <div class="result-mark ${isCorrect ? 'mark-o' : 'mark-x'}">
                                 ${isCorrect ? '〇 正解' : '× 不正解'}
                             </div>
@@ -495,6 +496,11 @@ const app = {
 
         this.updateNavButtons();
         this.updateSidebarHighlight();
+    },
+
+    // --- 追加: 一番上へスクロールする関数 ---
+    scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
     handleOptionClick(index, isCorrect) {
@@ -595,7 +601,7 @@ const app = {
         const yDiff = this.touchStartY - this.touchEndY;
 
         // 縦スクロール時の「誤爆」を防ぐため、横の移動量が縦より大きく、かつ50px以上動いた場合のみ処理する
-        if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) {
+        if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 75) {
             if (xDiff > 0) {
                 // 左スワイプ（右から左へ指を動かす）＝「次の問題へ」
                 this.nextPage();
