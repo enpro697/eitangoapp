@@ -508,7 +508,11 @@ const app = {
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-inner">
-<div class="accordion-body" ${isCorrect ? 'onclick="app.scrollToTop()" style="cursor: pointer;" title="クリックで設問へ戻る"' : ''}>
+<div class="accordion-body" 
+     ${isCorrect 
+         ? 'onclick="app.scrollToTop()" style="cursor: pointer;" title="クリックで設問へ戻る"' 
+         : `onclick="app.scrollToNextIncorrect(${index})" style="cursor: pointer;" title="クリックで次の不正解へ移動"`
+     }>
                             <div class="result-mark ${isCorrect ? 'mark-o' : 'mark-x'}">
                                 ${isCorrect ? '〇 正解' : '× 不正解'}
                             </div>
