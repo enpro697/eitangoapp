@@ -409,7 +409,35 @@ const app = {
             alert('データの取り込みに失敗しました。');
         }
     },
+// --- 追加: 次の不正解の選択肢へスクロールする関数 ---
+    scrollToNextIncorrect(currentIndex) {
+        const items = document.querySelectorAll('.option-item');
+        const incorrectIndices = [];
 
+        // 画面上の全選択肢から、不正解（.mark-xを持つ）のインデックスを抽出
+        items.forEach((item, index) => {
+            if (item.querySelector('.mark-x')) {
+                incorrectIndices.push(index);
+            }
+        });
+
+        // 不正解の選択肢が1つ以下の場合は何もしない
+        if (incorrectIndices.length <= 1) return;
+
+        // クリックされた選択肢が、不正解リストの何番目にあるか取得
+        const currentPos = incorrectIndices.indexOf(currentIndex);
+        if (currentPos === -1) return;
+
+        // 次の不正解のインデックスを計算（最後なら0番目に戻る）
+        const nextPos = (currentPos + 1) % incorrectIndices.length;
+        const targetIndex = incorrectIndices[nextPos];
+
+        // 対象の要素へスムーズにスクロール
+        const targetItem = document.getElementById(`option-item-${targetIndex}`);
+        if (targetItem) {
+            targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    },
     // --- エディタ画面の便利機能 ---
     clearText() {
         document.getElementById('json-input').value = '';
