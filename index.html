@@ -88,29 +88,29 @@
         .arrow-btn:disabled { color: #ccc; background: none; }
 
         .question-text { 
-    font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; 
-    padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);
-    cursor: pointer; /* 追加: クリックできることを示す指マーク */
-    transition: background-color 0.2s ease; /* 追加: ホバー時のアニメーション */
-}
-.question-text:hover {
-    background-color: #e4ebf1; /* 追加: マウスオーバー時に少し色を濃くしてボタンっぽくする */
-}
-* {
-    -webkit-tap-highlight-color: transparent;
-}
+            font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; 
+            padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);
+            cursor: pointer; /* 追加: クリックできることを示す指マーク */
+            transition: background-color 0.2s ease; /* 追加: ホバー時のアニメーション */
+        }
+        .question-text:hover {
+            background-color: #e4ebf1; /* 追加: マウスオーバー時に少し色を濃くしてボタンっぽくする */
+        }
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
         
-/* 追加: アコーディオン開閉ボタンの個別サイズ調整 */
-#toggle-accordion-btn {
-    padding: 8px 16px; /* デフォルトより少し幅と高さをコンパクトに */
-    font-size: 13px;
-}
+        /* 追加: アコーディオン開閉ボタンの個別サイズ調整 */
+        #toggle-accordion-btn {
+            padding: 8px 16px; /* デフォルトより少し幅と高さをコンパクトに */
+            font-size: 13px;
+        }
         .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out;transition: background-color 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-/* 新規追加: ホバー時のスタイル */
-.question-translation:hover {
-    background-color: #eaeff3; /* マウスオーバー時に少し色を濃くする */
-}
+        /* 新規追加: ホバー時のスタイル */
+        .question-translation:hover {
+            background-color: #eaeff3; /* マウスオーバー時に少し色を濃くする */
+        }
         /* 選択肢とアコーディオン */
         .options-list { display: flex; flex-direction: column; gap: 12px; }
         .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); }
@@ -133,32 +133,29 @@
         .mark-x { color: var(--incorrect-color); }
         .meaning-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
         .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
-/* フッターナビゲーションのスタイル */
-.app-footer {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: right;
-    align-items: center;
-}
+        /* フッターナビゲーションのスタイル */
+        .app-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: right;
+            align-items: center;
+        }
 
-.footer-link {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 2.5px 5px;
-    border-radius: 10px;
-   // background-color: #f0f0f0;
-   // transition: var(--transition);
-}
+        .footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 2.5px 5px;
+            border-radius: 10px;
+        }
 
-.footer-link:hover {
-  //  background-color: var(--primary-light);
-    color: var(--primary-color);
-    text-decoration: none;
-}
+        .footer-link:hover {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
         /* サイドバー（ドロワーメニュー） */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
@@ -239,7 +236,7 @@
         </div>
 
         <div id="question-text" class="question-text" onclick="app.toggleAllAccordions()" title="クリックで回答を開閉"></div>
-        <div id="question-translation" class="question-translation hidden" onclick="app.scrollToCorrectOption()" style="cursor: pointer;" title="クリックで正解の選択肢へ移動"></div>
+        <div id="question-translation" class="question-translation hidden" onclick="app.scrollToNextOptionOfCorrect()" style="cursor: pointer;" title="クリックで正解の次の選択肢へ移動"></div>
         <div id="options-container" class="options-list"></div>
         <div class="app-footer">
         <a class="footer-link" onclick="app.switchView('editor')">設定・データ編集を開く</a>
@@ -283,22 +280,15 @@ const app = {
                 document.getElementById('json-input').value = "通信中...";
             }
             
-            // 先ほどの回答通り、URLはCDNに変更し、タイムスタンプは外すのがおすすめです
             const response = await fetch(this.REMOTE_JSON_URL); 
             if (!response.ok) throw new Error("Network response was not ok");
             
-            // 🚨 修正前：ここで厳密なチェックが入り、エラーになっていた
-            // const remoteData = await response.json(); 
-
-            // ✨ 修正後：一度テキストとして取得し、独自の修復関数を通す
             const rawText = await response.text();
             const remoteData = this.parseCustomJSON(rawText); 
             
-            // データをテキストエリアにセット
             const formattedJson = JSON.stringify(remoteData, null, 2);
             document.getElementById('json-input').value = formattedJson;
             
-            // そのまま自動で取り込み処理を実行
             this.importData();
 
             if (isManualClick) {
@@ -313,7 +303,6 @@ const app = {
         }
     },
 
-    // 複数のJSON配列や不要なテキストが混ざった文字列を結合・パースする最強関数
     parseCustomJSON(inputStr) {
         try {
             return JSON.parse(inputStr);
@@ -327,25 +316,19 @@ const app = {
         }
     },
 
-    // データをフラットに抽出し、IDを1から振り直す関数
     normalizeAndReassignIds(rawData) {
         let flatQuestions = [];
 
-        // 再帰的に問題データを抽出する内部関数
         const extractQuestions = (data) => {
             if (Array.isArray(data)) {
-                // 配列なら中身を一つずつチェック
                 data.forEach(item => extractQuestions(item));
             } else if (data && typeof data === 'object') {
-                // 明らかに問題データ本体と思われるプロパティがある場合
                 if (data.question || data.options || data.choices || data.punchline || data.sentence) {
                     flatQuestions.push(data);
                 } 
-                // "questions" 配列を持っている場合（階層化されている場合）
                 else if (Array.isArray(data.questions)) {
                     extractQuestions(data.questions);
                 }
-                // その他、さらにネストされたオブジェクトがある場合（quiz_dataの中など）
                 else {
                     for (const key in data) {
                         if (typeof data[key] === 'object') {
@@ -356,10 +339,8 @@ const app = {
             }
         };
 
-        // 抽出を実行
         extractQuestions(rawData);
 
-        // 抽出した全問題データの id を 1 から振り直す
         flatQuestions.forEach((q, index) => {
             q.id = index + 1;
         });
@@ -372,7 +353,6 @@ const app = {
         const errorMsg = document.getElementById('json-error');
         const importBtn = document.getElementById('import-btn');
         
-        // 空欄の場合はエラーを出さずボタンを無効化
         if (!inputVal.trim()) {
             errorMsg.classList.add('hidden');
             importBtn.disabled = true;
@@ -382,7 +362,6 @@ const app = {
         try {
             this.parseCustomJSON(inputVal);
             errorMsg.classList.add('hidden');
-            // 一度フォーマットした文字列と比較（差分感知）
             const isDifferent = (inputVal.trim() !== this.savedJsonString);
             importBtn.disabled = !isDifferent;
         } catch (e) {
@@ -394,57 +373,33 @@ const app = {
     importData() {
         const inputVal = document.getElementById('json-input').value;
         try {
-            // スマートパースでデータを取得
             let parsedData = this.parseCustomJSON(inputVal);
-            
-            // ▼ ここでデータの抽出とID振り直しを実行 ▼
             parsedData = this.normalizeAndReassignIds(parsedData);
-
             this.data = parsedData;
             
-            // フォーマットを綺麗に整形してテキストエリアに戻す（次からエラーにならないように）
             this.savedJsonString = JSON.stringify(this.data, null, 2);
             document.getElementById('json-input').value = this.savedJsonString; 
             
             document.getElementById('import-btn').disabled = true;
             this.currentIndex = 0; 
-            this.renderSidebar(); // サイドバーの再構築
+            this.renderSidebar();
             this.switchView('quiz');
         } catch (e) {
             console.error(e);
             alert('データの取り込みに失敗しました。');
         }
     },
-// --- 追加: 次の不正解の選択肢へスクロールする関数 ---
-    scrollToNextIncorrect(currentIndex) {
+
+    // --- 修正: 次の選択肢へスクロールする関数 ---
+    scrollToNextOption(currentIndex) {
         const items = document.querySelectorAll('.option-item');
-        const incorrectIndices = [];
-
-        // 画面上の全選択肢から、不正解（.mark-xを持つ）のインデックスを抽出
-        items.forEach((item, index) => {
-            if (item.querySelector('.mark-x')) {
-                incorrectIndices.push(index);
-            }
-        });
-
-        // 不正解の選択肢が1つ以下の場合は何もしない
-        if (incorrectIndices.length <= 1) return;
-
-        // クリックされた選択肢が、不正解リストの何番目にあるか取得
-        const currentPos = incorrectIndices.indexOf(currentIndex);
-        if (currentPos === -1) return;
-
-        // 次の不正解のインデックスを計算（最後なら0番目に戻る）
-        const nextPos = (currentPos + 1) % incorrectIndices.length;
-        const targetIndex = incorrectIndices[nextPos];
-
-        // 対象の要素へスムーズにスクロール
-        const targetItem = document.getElementById(`option-item-${targetIndex}`);
+        const nextIndex = (currentIndex + 1) % items.length;
+        const targetItem = document.getElementById(`option-item-${nextIndex}`);
         if (targetItem) {
             targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     },
-    // --- エディタ画面の便利機能 ---
+
     clearText() {
         document.getElementById('json-input').value = '';
         this.validateJsonInput();
@@ -454,7 +409,6 @@ const app = {
         const ta = document.getElementById('json-input');
         ta.scrollTop = ta.scrollHeight;
     },
-    // ----------------------------
 
     switchView(viewName) {
         document.getElementById('editor-view').classList.add('hidden');
@@ -464,20 +418,19 @@ const app = {
             this.renderQuiz();
         }
     },
-// --- 追加: 正解の選択肢へスクロールする関数 ---
-    scrollToCorrectOption() {
-        // .mark-o (正解マーク) を持つ要素を探す
+
+    // --- 修正: 正解の「次」の選択肢へスクロールする関数 ---
+    scrollToNextOptionOfCorrect() {
         const correctMark = document.querySelector('.mark-o');
-        
         if (correctMark) {
-            // その親要素である選択肢の枠（.option-item）を取得
             const correctItem = correctMark.closest('.option-item');
             if (correctItem) {
-                // 画面中央にスムーズにスクロール
-                correctItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const currentIndex = parseInt(correctItem.id.split('-')[2]);
+                this.scrollToNextOption(currentIndex);
             }
         }
     },
+
     renderQuiz() {
         if (!this.data || this.data.length === 0) return;
         
@@ -495,15 +448,12 @@ const app = {
         const container = document.getElementById('options-container');
         container.innerHTML = '';
 
-        // データの持ち方（options or choices）を吸収する処理を入れるとより安全ですが
-        // 今回は元のコードのまま、options配列がある前提の処理を残しています。
         if (!q.options && !q.choices) {
             container.innerHTML = '<div style="padding: 20px;">この問題には選択肢データがありません。データの形式を確認してください。</div>';
             return;
         }
 
         let shuffledOptions = q.options ? [...q.options] : [...q.choices];
-        // ランダムシャッフル
         for (let i = shuffledOptions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
@@ -514,12 +464,12 @@ const app = {
             itemDiv.className = 'option-item';
             itemDiv.id = `option-item-${index}`;
             
-            // オブジェクト形式か文字列形式かで取り出し方を変える安全策
             let wordStr = opt.word || opt;
             let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
             let isCorrect = opt.is_correct === true || q.answer === wordStr || q.answer_index === index;
             let exampleStr = opt.example || q.example || q.sentence || q.punchline || "";
 
+            // --- 修正: onclickの呼び出し先を変更 ---
             itemDiv.innerHTML = `
                 <button class="option-button" onclick="app.handleOptionClick(${index}, ${isCorrect})">
                     <span class="word-text">${index + 1}. ${wordStr}</span>
@@ -527,11 +477,11 @@ const app = {
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-inner">
-<div class="accordion-body" 
-     ${isCorrect 
-         ? 'onclick="app.scrollToTop()" style="cursor: pointer;" title="クリックで設問へ戻る"' 
-         : `onclick="app.scrollToNextIncorrect(${index})" style="cursor: pointer;" title="クリックで次の不正解へ移動"`
-     }>
+                        <div class="accordion-body" 
+                             ${isCorrect 
+                                 ? 'onclick="app.scrollToQuestion()" style="cursor: pointer;" title="クリックで設問へ戻る"' 
+                                 : `onclick="app.scrollToNextOption(${index})" style="cursor: pointer;" title="クリックで次の選択肢へ移動"`
+                             }>
                             <div class="result-mark ${isCorrect ? 'mark-o' : 'mark-x'}">
                                 ${isCorrect ? '〇 正解' : '× 不正解'}
                             </div>
@@ -548,9 +498,12 @@ const app = {
         this.updateSidebarHighlight();
     },
 
-    // --- 追加: 一番上へスクロールする関数 ---
-    scrollToTop() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    // --- 修正: 設問へスクロールする関数 ---
+    scrollToQuestion() {
+        const questionEl = document.getElementById('question-text');
+        if (questionEl) {
+            questionEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     },
 
     handleOptionClick(index, isCorrect) {
@@ -560,7 +513,6 @@ const app = {
         } else {
             item.classList.add('open');
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
-            // アコーディオンが開く動作に合わせて、クリックした要素を画面中央にスクロール
             setTimeout(() => {
                 item.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 150);
@@ -581,14 +533,13 @@ const app = {
             }
         });
         this.checkTranslationVisibility();
-        // 全開にした場合、正解の選択肢を探して画面中央にスクロールさせる
         if (this.isAllAccordionsOpen) {
             setTimeout(() => {
                 const correctItem = Array.from(items).find(item => item.querySelector('.mark-o') !== null);
                 if (correctItem) {
                     correctItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            }, 300); // CSSアニメーション(0.3s)の完了付近でスクロール
+            }, 300);
         }
     },
 
@@ -596,7 +547,6 @@ const app = {
         const openItemsCount = document.querySelectorAll('.option-item.open').length;
         const transDiv = document.getElementById('question-translation');
         if (openItemsCount > 0 && transDiv.innerText.trim() !== "") {
-            // 元の仕様に合わせて、すべて開いたら表示する等の条件なら適宜調整してください
             transDiv.classList.remove('hidden');
         } else {
             transDiv.classList.add('hidden');
@@ -628,17 +578,15 @@ const app = {
         document.getElementById('btn-prev').disabled = (this.currentIndex === 0);
         document.getElementById('btn-next').disabled = (this.currentIndex === this.data.length - 1);
     },
-    // --- スワイプ操作（タッチイベント）関連 ---
+
     setupTouchEvents() {
         const quizView = document.getElementById('quiz-view');
         
-        // タッチ開始時の座標を記録
         quizView.addEventListener('touchstart', (e) => {
             this.touchStartX = e.changedTouches[0].screenX;
             this.touchStartY = e.changedTouches[0].screenY;
         }, { passive: true });
 
-        // タッチ終了時の座標を記録し、判定メソッドを呼び出す
         quizView.addEventListener('touchend', (e) => {
             this.touchEndX = e.changedTouches[0].screenX;
             this.touchEndY = e.changedTouches[0].screenY;
@@ -650,19 +598,15 @@ const app = {
         const xDiff = this.touchStartX - this.touchEndX;
         const yDiff = this.touchStartY - this.touchEndY;
 
-        // 縦スクロール時の「誤爆」を防ぐため、横の移動量が縦より大きく、かつ50px以上動いた場合のみ処理する
         if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 75) {
             if (xDiff > 0) {
-                // 左スワイプ（右から左へ指を動かす）＝「次の問題へ」
                 this.nextPage();
             } else {
-                // 右スワイプ（左から右へ指を動かす）＝「前の問題へ」
                 this.prevPage();
             }
         }
     },
 
-    // --- サイドバー（ドロワーメニュー）関連 ---
     toggleSidebar(show) {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -679,7 +623,7 @@ const app = {
         const container = document.getElementById('sidebar-content');
         container.innerHTML = '';
         
-        const groupSize = 50; // 50件ごとにグループ化
+        const groupSize = 50;
         const totalGroups = Math.ceil(this.data.length / groupSize);
 
         for (let g = 0; g < totalGroups; g++) {
@@ -701,7 +645,7 @@ const app = {
                 item.innerText = `- Question ${i + 1}`;
                 item.onclick = () => {
                     this.goToPage(i);
-                    this.toggleSidebar(false); // ジャンプしたらメニューを閉じる
+                    this.toggleSidebar(false);
                 };
                 list.appendChild(item);
             }
@@ -711,20 +655,17 @@ const app = {
     },
 
     updateSidebarHighlight() {
-        // すべてのハイライトをリセット
         document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
         
         const activeEl = document.getElementById(`sidebar-item-${this.currentIndex}`);
         if (activeEl) {
             activeEl.classList.add('active');
             
-            // 所属しているアコーディオン（details）を開く
             const parentDetails = activeEl.closest('details');
             if (parentDetails) {
                 parentDetails.open = true;
             }
             
-            // サイドバー内で現在位置まで自動スクロール
             activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
