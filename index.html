@@ -23,9 +23,7 @@
       }
 
       body {
-        font-family:
-          "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans",
-          Meiryo, sans-serif;
+        font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
         background-color: var(--bg-color);
         color: var(--text-main);
         margin: 0;
@@ -84,10 +82,10 @@
 
       /* ブックマークアイコンスタイル */
       .bookmark-btn {
-        background: none; border: none; padding: 5px 10px; cursor: pointer; color: #ccc; transition: transform 0.2s;
+        background: none; border: none; padding: 5px 10px; cursor: pointer; color: #ccc; transition: transform 0.2s; box-shadow: none;
       }
-      .bookmark-btn:hover { transform: scale(1.1); }
-      .bookmark-btn.active { color: #e74c3c; } /* ブックマーク時の赤色 */
+      .bookmark-btn:hover { background: none; transform: scale(1.1); }
+      .bookmark-btn.active { color: #ffe066; } /* ブックマーク時の薄い黄色 */
 
       /* 矢印ナビゲーション */
       .arrow-nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -128,7 +126,7 @@
       .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
 
       .app-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: right; align-items: center; }
-      .footer-link { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; padding: 2.5px 5px; border-radius: 10px; }
+      .footer-link { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; padding: 2.5px 5px; border-radius: 10px; cursor: pointer; }
       .footer-link:hover { color: var(--primary-color); text-decoration: none; }
 
       /* サイドバー（ドロワーメニュー） */
@@ -140,7 +138,7 @@
       .sidebar-header { font-size: 18px; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
       
       .close-sidebar-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; box-shadow: none; height: 30px; width: 30px; line-height: 1; }
-      .close-sidebar-btn:hover { color: var(--incorrect-color); }
+      .close-sidebar-btn:hover { background: none; color: var(--incorrect-color); }
 
       .sidebar details { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
       .sidebar summary { background: #f0f4f8; padding: 12px 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
@@ -156,13 +154,12 @@
     </style>
   </head>
   <body>
+    <!-- サイドバー -->
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="app.toggleSidebar(false)"></div>
-    
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div style="display: flex; align-items: center; gap: 8px;">
           設問メニュー
-          <!-- サイドバーのブックマークフィルターボタン -->
           <button id="filter-bookmark-btn" class="bookmark-btn" onclick="app.toggleBookmarkFilter()" title="ブックマークのみ表示">
             <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -175,6 +172,7 @@
     </div>
 
     <div id="app">
+      <!-- エディタ画面 -->
       <div id="editor-view" class="view">
         <div class="top-nav-bar" style="justify-content: flex-end">
           <a class="nav-link" onclick="app.switchView('quiz')">設問ページへ遷移するリンク →</a>
@@ -182,6 +180,13 @@
         <h2>読み込みデータ編集</h2>
 
         <div class="editor-container">
+          <!-- Firebaseログインエリア -->
+          <div style="margin: 10px 0; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);">
+            <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
+            <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
+          </div>
+
           <div class="editor-toolbar">
             <button class="btn-secondary" onclick="app.clearText()">全削除</button>
             <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
@@ -196,6 +201,7 @@
         </div>
       </div>
 
+      <!-- クイズ画面 -->
       <div id="quiz-view" class="view hidden">
         <div class="top-nav-bar">
           <button class="menu-btn" onclick="app.toggleSidebar(true)">
@@ -212,7 +218,6 @@
             <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
           </div>
           <div style="display: flex; align-items: center; gap: 5px;">
-            <!-- 設問右上のブックマーク登録/解除ボタン -->
             <button id="main-bookmark-btn" class="bookmark-btn" onclick="app.toggleBookmark()" title="ブックマークに登録">
               <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -236,22 +241,39 @@
       </div>
     </div>
 
-    <script>
+    <!-- スクリプト -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+      import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+      // 取得した設定値
+      const firebaseConfig = {
+        apiKey: "AIzaSyC49VpvSo7xhcX4ytc1XVvswTYRryFeDHM",
+        authDomain: "vocabmaster-6736a.firebaseapp.com",
+        projectId: "vocabmaster-6736a",
+        storageBucket: "vocabmaster-6736a.firebasestorage.app",
+        messagingSenderId: "460606872770",
+        appId: "1:460606872770:web:58faf647864b979975ef5b"
+      };
+
+      const firebaseApp = initializeApp(firebaseConfig);
+      const auth = getAuth(firebaseApp);
+      const db = getFirestore(firebaseApp);
+
       const app = {
         data: [],
-        bookmarks: [], // ブックマークされた設問のIDを保存する配列
-        isBookmarkFilterActive: false, // フィルター状態
-        savedJsonString: "",
+        bookmarks: [],
+        isBookmarkFilterActive: false,
+        savedJsonString: "[]",
         currentIndex: 0,
         isAllAccordionsOpen: false,
+        user: null,
 
         touchStartX: 0, touchEndX: 0, touchStartY: 0, touchEndY: 0,
-
         REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
         init() {
-          this.data = [];
-          this.savedJsonString = "[]";
           const jsonInput = document.getElementById("json-input");
           jsonInput.value = this.savedJsonString;
           jsonInput.addEventListener("input", () => this.validateJsonInput());
@@ -259,25 +281,73 @@
           this.setupTouchEvents();
           document.getElementById("app").addEventListener("click", (e) => this.handleEdgeClick(e));
           
-          // アプリ起動時にローカルストレージからブックマークを復元
-          this.loadBookmarks();
+          // Firebase認証の監視
+          onAuthStateChanged(auth, (user) => {
+            const loginBtn = document.getElementById('login-btn');
+            if (user) {
+              this.user = user;
+              if (loginBtn) loginBtn.innerText = "ログアウト";
+              this.loadBookmarks();
+            } else {
+              this.user = null;
+              if (loginBtn) loginBtn.innerText = "Googleでログイン";
+              this.loadBookmarks();
+            }
+          });
           
           this.fetchRemoteData(false);
         },
 
-        // --- ブックマーク・同期関連の処理群 --- //
-
-        loadBookmarks() {
-          // 【ここに将来、GASなどからデータを取得する処理を追加します】
-          const saved = localStorage.getItem('vocab_bookmarks');
-          if (saved) {
-            this.bookmarks = JSON.parse(saved);
+        // --- Firebase & ブックマーク管理 ---
+        async toggleLogin() {
+          if (this.user) {
+            await signOut(auth);
+            alert("ログアウトしました。これ以降の変更はローカルにのみ保存されます。");
+          } else {
+            const provider = new GoogleAuthProvider();
+            try {
+              await signInWithPopup(auth, provider);
+            } catch(error) {
+              console.error("ログインエラー", error);
+              alert("ログインに失敗しました。");
+            }
           }
         },
 
-        saveBookmarks() {
-          // 【ここに将来、GASなどへデータを送信する処理を追加します】
+        async loadBookmarks() {
+          if (this.user) {
+            try {
+              const docRef = doc(db, "users", this.user.uid);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                this.bookmarks = docSnap.data().bookmarks || [];
+                localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarks));
+              }
+            } catch(e) {
+              console.error("取得エラー", e);
+            }
+          } else {
+            const saved = localStorage.getItem('vocab_bookmarks');
+            if (saved) this.bookmarks = JSON.parse(saved);
+          }
+          this.updateBookmarkIcons();
+          if (this.isBookmarkFilterActive) {
+            this.renderSidebar();
+            this.renderQuiz();
+          }
+        },
+
+        async saveBookmarks() {
           localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarks));
+          if (this.user) {
+            try {
+              await setDoc(doc(db, "users", this.user.uid), {
+                bookmarks: this.bookmarks
+              }, { merge: true });
+            } catch(e) {
+              console.error("クラウド保存エラー", e);
+            }
+          }
         },
 
         toggleBookmark() {
@@ -288,9 +358,9 @@
           const index = this.bookmarks.indexOf(q.id);
           
           if (index > -1) {
-            this.bookmarks.splice(index, 1); // 削除
+            this.bookmarks.splice(index, 1);
           } else {
-            this.bookmarks.push(q.id); // 追加
+            this.bookmarks.push(q.id);
           }
           
           this.saveBookmarks();
@@ -299,13 +369,12 @@
 
         toggleBookmarkFilter() {
           this.isBookmarkFilterActive = !this.isBookmarkFilterActive;
-          this.currentIndex = 0; // フィルター切り替え時は最初に戻す
+          this.currentIndex = 0;
           this.renderSidebar();
           this.renderQuiz();
         },
 
         updateBookmarkIcons() {
-          // メイン画面のアイコン更新
           const currentData = this.getFilteredData();
           const mainBtn = document.getElementById('main-bookmark-btn');
           
@@ -323,7 +392,6 @@
             }
           }
 
-          // サイドバーのフィルターアイコン更新
           const filterBtn = document.getElementById('filter-bookmark-btn');
           if (this.isBookmarkFilterActive) {
             filterBtn.classList.add('active');
@@ -334,7 +402,6 @@
           }
         },
 
-        // 表示すべきデータの配列を返す（フィルター適用）
         getFilteredData() {
           if (this.isBookmarkFilterActive) {
             return this.data.filter(q => this.bookmarks.includes(q.id));
@@ -342,24 +409,7 @@
           return this.data;
         },
 
-        // ------------------------------------ //
-
-        handleEdgeClick(e) {
-          if (document.getElementById("quiz-view").classList.contains("hidden")) return;
-          const ignoredElements = ["BUTTON", "A", "TEXTAREA", "INPUT"];
-          if (ignoredElements.includes(e.target.tagName) || e.target.closest(".option-item, .sidebar, .menu-btn, .nav-link, .bookmark-btn")) return;
-
-          const rect = e.currentTarget.getBoundingClientRect();
-          const clickX = e.clientX - rect.left;
-          const edgeWidth = rect.width * 0.07;
-
-          if (clickX < edgeWidth) {
-            this.prevPage();
-          } else if (clickX > rect.width - edgeWidth) {
-            this.nextPage();
-          }
-        },
-
+        // --- データ通信・解析 ---
         async fetchRemoteData(isManualClick = false) {
           try {
             if (isManualClick) document.getElementById("json-input").value = "通信中...";
@@ -435,9 +485,8 @@
             document.getElementById("json-input").value = this.savedJsonString;
             document.getElementById("import-btn").disabled = true;
             
-            // ブックマークフィルターがONの状態でデータインポートされた場合への備え
             if(this.isBookmarkFilterActive && this.getFilteredData().length === 0) {
-              this.isBookmarkFilterActive = false; // 強制OFF
+              this.isBookmarkFilterActive = false;
             }
             
             this.currentIndex = 0;
@@ -445,6 +494,39 @@
             this.switchView("quiz");
           } catch (e) {
             alert("データの取り込みに失敗しました。");
+          }
+        },
+
+        // --- UI・画面遷移操作 ---
+        handleEdgeClick(e) {
+          if (document.getElementById("quiz-view").classList.contains("hidden")) return;
+          const ignoredElements = ["BUTTON", "A", "TEXTAREA", "INPUT"];
+          if (ignoredElements.includes(e.target.tagName) || e.target.closest(".option-item, .sidebar, .menu-btn, .nav-link, .bookmark-btn")) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const edgeWidth = rect.width * 0.07;
+          if (clickX < edgeWidth) this.prevPage();
+          else if (clickX > rect.width - edgeWidth) this.nextPage();
+        },
+
+        setupTouchEvents() {
+          const quizView = document.getElementById("quiz-view");
+          quizView.addEventListener("touchstart", (e) => {
+            this.touchStartX = e.changedTouches[0].screenX;
+            this.touchStartY = e.changedTouches[0].screenY;
+          }, { passive: true });
+          quizView.addEventListener("touchend", (e) => {
+            this.touchEndX = e.changedTouches[0].screenX;
+            this.touchEndY = e.changedTouches[0].screenY;
+            this.handleSwipe();
+          }, { passive: true });
+        },
+
+        handleSwipe() {
+          const xDiff = this.touchStartX - this.touchEndX;
+          const yDiff = this.touchStartY - this.touchEndY;
+          if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 75) {
+            if (xDiff > 0) this.nextPage(); else this.prevPage();
           }
         },
 
@@ -483,14 +565,18 @@
           }
         },
 
+        scrollToQuestion() {
+          const questionEl = document.getElementById("question-text");
+          if (questionEl) questionEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        },
+
+        // --- クイズ描画 ---
         renderQuiz() {
           const currentData = this.getFilteredData();
           
           if (!currentData || currentData.length === 0) {
             document.getElementById("question-text").innerHTML = 
-              this.isBookmarkFilterActive 
-                ? "ブックマークされた問題はありません。" 
-                : "問題文がありません";
+              this.isBookmarkFilterActive ? "ブックマークされた問題はありません。" : "問題文がありません";
             document.getElementById("question-translation").classList.add("hidden");
             document.getElementById("options-container").innerHTML = "";
             document.getElementById("q-current").innerText = "0";
@@ -559,11 +645,6 @@
           this.updateNavButtons();
           this.updateBookmarkIcons();
           this.updateSidebarHighlight();
-        },
-
-        scrollToQuestion() {
-          const questionEl = document.getElementById("question-text");
-          if (questionEl) questionEl.scrollIntoView({ behavior: "smooth", block: "center" });
         },
 
         handleOptionClick(index, isCorrect) {
@@ -638,33 +719,13 @@
           document.getElementById("btn-next").disabled = currentData.length === 0 || this.currentIndex === currentData.length - 1;
         },
 
-        setupTouchEvents() {
-          const quizView = document.getElementById("quiz-view");
-          quizView.addEventListener("touchstart", (e) => {
-            this.touchStartX = e.changedTouches[0].screenX;
-            this.touchStartY = e.changedTouches[0].screenY;
-          }, { passive: true });
-          quizView.addEventListener("touchend", (e) => {
-            this.touchEndX = e.changedTouches[0].screenX;
-            this.touchEndY = e.changedTouches[0].screenY;
-            this.handleSwipe();
-          }, { passive: true });
-        },
-
-        handleSwipe() {
-          const xDiff = this.touchStartX - this.touchEndX;
-          const yDiff = this.touchStartY - this.touchEndY;
-          if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 75) {
-            if (xDiff > 0) this.nextPage(); else this.prevPage();
-          }
-        },
-
+        // --- サイドバー描画 ---
         toggleSidebar(show) {
           const sidebar = document.getElementById("sidebar");
           const overlay = document.getElementById("sidebar-overlay");
           if (show) {
             sidebar.classList.add("open"); overlay.classList.add("active");
-            this.updateSidebarHighlight(); // 開くたびにハイライトとスクロールを再調整
+            this.updateSidebarHighlight();
           } else {
             sidebar.classList.remove("open"); overlay.classList.remove("active");
           }
@@ -700,7 +761,6 @@
               const item = document.createElement("div");
               item.className = "sidebar-item";
               item.id = `sidebar-item-${i}`;
-              // フィルター中も元のID（Question番号）を表示
               item.innerText = `- Question ${q.id}`;
               item.onclick = () => {
                 this.goToPage(i);
@@ -720,7 +780,6 @@
             activeEl.classList.add("active");
             const parentDetails = activeEl.closest("details");
             if (parentDetails) parentDetails.open = true;
-            // メニューが開いた状態でのみスクロールを実行（画面のガタつき防止）
             if (document.getElementById("sidebar").classList.contains("open")) {
                 activeEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
             }
@@ -728,6 +787,8 @@
         }
       };
 
+      // モジュールから呼び出せるように window に登録
+      window.app = app;
       document.addEventListener("DOMContentLoaded", () => app.init());
     </script>
   </body>
