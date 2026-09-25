@@ -1,623 +1,505 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vocab Master - 語彙力強化アプリ</title>
     <style>
-      :root {
-        --primary-color: #4a90e2;
-        --primary-hover: #357abd;
-        --primary-light: #e1efff;
-        --correct-color: #4caf50;
-        --correct-bg: #e8f5e9;
-        --incorrect-color: #f44336;
-        --incorrect-bg: #ffebee;
-        --bg-color: #f8f9fa;
-        --card-bg: #ffffff;
-        --text-main: #333333;
-        --text-muted: #666666;
-        --border-color: #e0e0e0;
-        --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        --transition: all 0.3s ease;
-      }
+        :root {
+            --primary-color: #4A90E2;
+            --primary-hover: #357ABD;
+            --primary-light: #E1EFFF;
+            --correct-color: #4CAF50;
+            --correct-bg: #E8F5E9;
+            --incorrect-color: #F44336;
+            --incorrect-bg: #FFEBEE;
+            --bg-color: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #E0E0E0;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+        }
 
-      body {
-        font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-main);
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-      }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
 
-      #app {
-        width: 100%;
-        max-width: 800px;
-        background: var(--card-bg);
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        padding: 20px 30px 30px;
-        min-height: 80vh;
-        position: relative;
-        box-sizing: border-box;
-        overflow-x: hidden;
-      }
+        #app {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 20px 30px 30px;
+            min-height: 80vh;
+            position: relative;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
 
-      .hidden { display: none !important; }
+        .hidden { display: none !important; }
 
-      h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-top: 0; }
-      .nav-link { color: var(--primary-color); text-decoration: none; font-weight: bold; display: inline-block; cursor: pointer; }
-      .nav-link:hover { text-decoration: underline; }
+        h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-top: 0; }
+        .nav-link { color: var(--primary-color); text-decoration: none; font-weight: bold; display: inline-block; cursor: pointer; }
+        .nav-link:hover { text-decoration: underline; }
+        
+        button {
+            background-color: var(--primary-color); color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: var(--transition);
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; opacity: 0.5; }
 
-      button {
-        background-color: var(--primary-color); color: white; border: none; padding: 10px 20px;
-        border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: var(--transition);
-      }
-      button:hover { background-color: var(--primary-hover); }
-      button:disabled { background-color: #cccccc; cursor: not-allowed; opacity: 0.5; }
+        /* エディタ画面 */
+        .editor-container { display: flex; flex-direction: column; gap: 15px; }
+        .editor-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: -5px; }
+        .btn-secondary { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
+        .btn-secondary:hover { background-color: #e4e4e4; }
+        
+        textarea {
+            width: 100%; height: 50vh; padding: 15px; border: 1px solid var(--border-color);
+            border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; box-sizing: border-box;
+            background-color: #FAFAFA;
+        }
+        textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
+        .error-message { color: var(--incorrect-color); background-color: var(--incorrect-bg); padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; }
+        .editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px;}
 
-      /* エディタ画面 */
-      .editor-container { display: flex; flex-direction: column; gap: 15px; }
-      .editor-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: -5px; }
-      .btn-secondary { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
-      .btn-secondary:hover { background-color: #e4e4e4; }
+        /* クイズ画面ヘッダー周り */
+        .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .menu-btn { background: none; color: var(--text-main); font-size: 24px; padding: 5px; box-shadow: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        .menu-btn:hover { background-color: #eee; }
+        
+        .quiz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;}
+        .question-number { font-weight: bold; color: var(--text-muted); font-size: 18px; margin-bottom: 5px; }
+        
+        /* 矢印ナビゲーション */
+        .arrow-nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .arrow-btn { background: none; color: var(--primary-color); font-size: 32px; font-weight: bold; padding: 0 10px; box-shadow: none; border-radius: 4px; }
+        .arrow-btn:hover { background-color: var(--primary-light); }
+        .arrow-btn:disabled { color: #ccc; background: none; }
 
-      textarea {
-        width: 100%; height: 50vh; padding: 15px; border: 1px solid var(--border-color);
-        border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; box-sizing: border-box; background-color: #fafafa;
-      }
-      textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
-      .error-message { color: var(--incorrect-color); background-color: var(--incorrect-bg); padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; }
-      .editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);}
+        .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-      /* クイズ画面ヘッダー周り */
-      .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-      .menu-btn { background: none; color: var(--text-main); font-size: 24px; padding: 5px; box-shadow: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
-      .menu-btn:hover { background-color: #eee; }
+        /* 選択肢とアコーディオン */
+        .options-list { display: flex; flex-direction: column; gap: 12px; }
+        .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); }
+        .option-button { width: 100%; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
+        .option-button:hover { background-color: #f9f9f9; }
+        
+        .option-item.answered-correct { border-color: var(--correct-color); }
+        .option-item.answered-correct .option-button { background-color: var(--correct-bg); color: var(--correct-color); font-weight: bold; }
+        .option-item.answered-incorrect { border-color: var(--incorrect-color); }
+        .option-item.answered-incorrect .option-button { background-color: var(--incorrect-bg); color: var(--incorrect-color); }
 
-      .quiz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
-      .question-number { font-weight: bold; color: var(--text-muted); font-size: 18px; margin-bottom: 5px; }
+        .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; background-color: #fafafa; }
+        .accordion-inner { overflow: hidden; }
+        .accordion-body { padding: 0 20px 20px 20px; }
+        .option-item.open .accordion-content { grid-template-rows: 1fr; }
+        .option-item.open .option-button { border-bottom: 1px solid var(--border-color); }
 
-      /* ブックマークアイコンスタイル */
-      .bookmark-btn {
-        background: none; border: none; padding: 5px 10px; cursor: pointer; color: #ccc; transition: transform 0.2s; box-shadow: none;
-      }
-      .bookmark-btn:hover { background: none; transform: scale(1.1); }
-      .bookmark-btn.active { color: #ffe066; } /* ブックマーク時の薄い黄色 */
+        .result-mark { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .mark-o { color: var(--correct-color); }
+        .mark-x { color: var(--incorrect-color); }
+        .meaning-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
+        .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
 
-      /* 矢印ナビゲーション */
-      .arrow-nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-      .arrow-btn { background: none; color: var(--primary-color); font-size: 32px; font-weight: bold; padding: 0 10px; box-shadow: none; border-radius: 4px; }
-      .arrow-btn:hover { background-color: var(--primary-light); }
-      .arrow-btn:disabled { color: #ccc; background: none; }
+        /* ブックマークボタン */
+        #bookmark-btn {
+            background-color: #fff;
+            color: #ccc;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        #bookmark-btn:hover { background-color: #f9f9f9; }
+        #bookmark-btn.active { color: #f5a623; border-color: #f5a623; background-color: #fffdf5; }
 
-      .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color); cursor: pointer; transition: background-color 0.2s ease; }
-      .question-text:hover { background-color: #e4ebf1; }
-      * { -webkit-tap-highlight-color: transparent; }
+        /* サイドバー（ドロワーメニュー） */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+        
+        .sidebar { position: fixed; top: 0; left: -300px; width: 260px; height: 100%; background: var(--card-bg); z-index: 100; box-shadow: 2px 0 8px rgba(0,0,0,0.1); overflow-y: auto; transition: left 0.3s ease; padding: 20px; box-sizing: border-box; }
+        .sidebar.open { left: 0; }
+        .sidebar-header { font-size: 18px; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center;}
+        .close-sidebar-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; box-shadow: none; height: 30px; width: 30px; line-height: 1;}
+        .close-sidebar-btn:hover { color: var(--incorrect-color); }
+        
+        .sidebar-filters { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+        .sidebar-filters select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; width: 100%; font-family: inherit; }
+        .sidebar-filters label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
 
-      #toggle-accordion-btn { padding: 8px 16px; font-size: 13px; }
-      .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; transition: background-color 0.2s ease; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-      .question-translation:hover { background-color: #eaeff3; }
-
-      /* 選択肢とアコーディオン */
-      .options-list { display: flex; flex-direction: column; gap: 12px; }
-      .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); }
-      .option-button { width: 100%; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
-      .option-button:hover { background-color: #fcfcfc; }
-
-      .option-item.answered-correct { border-color: var(--correct-color); }
-      .option-item.answered-correct .option-button { background-color: var(--correct-bg); color: var(--correct-color); font-weight: bold; }
-      .option-item.answered-incorrect { border-color: var(--incorrect-color); }
-      .option-item.answered-incorrect .option-button { background-color: var(--incorrect-bg); color: var(--incorrect-color); }
-
-      .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; background-color: #fafafa; }
-      .accordion-inner { overflow: hidden; }
-      .accordion-body { padding: 0 20px 20px 20px; }
-      .option-item.open .accordion-content { grid-template-rows: 1fr; }
-      .option-item.open .option-button { border-bottom: 1px solid var(--border-color); }
-
-      .result-mark { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
-      .mark-o { color: var(--correct-color); }
-      .mark-x { color: var(--incorrect-color); }
-      .meaning-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
-      .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
-
-      .app-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: right; align-items: center; }
-      .footer-link { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; padding: 2.5px 5px; border-radius: 10px; cursor: pointer; }
-      .footer-link:hover { color: var(--primary-color); text-decoration: none; }
-
-      /* サイドバー（ドロワーメニュー） */
-      .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
-      .sidebar-overlay.active { opacity: 1; visibility: visible; }
-
-      .sidebar { position: fixed; top: 0; left: -300px; width: 260px; height: 100%; background: var(--card-bg); z-index: 100; box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1); overflow-y: auto; transition: left 0.3s ease; padding: 20px; box-sizing: border-box; }
-      .sidebar.open { left: 0; }
-      .sidebar-header { font-size: 18px; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
-      
-      .close-sidebar-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; box-shadow: none; height: 30px; width: 30px; line-height: 1; }
-      .close-sidebar-btn:hover { background: none; color: var(--incorrect-color); }
-
-      .sidebar details { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
-      .sidebar summary { background: #f0f4f8; padding: 12px 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
-      .sidebar summary::-webkit-details-marker { display: none; }
-      .sidebar summary::after { content: "▼"; font-size: 12px; transition: transform 0.3s ease; }
-      .sidebar details[open] summary::after { transform: rotate(180deg); }
-      .sidebar details[open] summary { border-bottom: 1px solid var(--border-color); background: var(--primary-light); color: var(--primary-hover); }
-
-      .sidebar-list { padding: 5px 0; background: #fff; }
-      .sidebar-item { padding: 10px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
-      .sidebar-item:hover { background: #f9f9f9; }
-      .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
+        .sidebar details { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+        .sidebar summary { background: #f0f4f8; padding: 12px 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .sidebar summary::-webkit-details-marker { display: none; }
+        .sidebar summary::after { content: "▼"; font-size: 12px; transition: transform 0.3s ease; }
+        .sidebar details[open] summary::after { transform: rotate(180deg); }
+        .sidebar details[open] summary { border-bottom: 1px solid var(--border-color); background: var(--primary-light); color: var(--primary-hover); }
+        
+        .sidebar-list { padding: 5px 0; background: #fff;}
+        .sidebar-item { padding: 10px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
+        .sidebar-item:hover { background: #f9f9f9; }
+        .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
     </style>
-  </head>
-  <body>
-    <!-- サイドバー -->
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="app.toggleSidebar(false)"></div>
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          設問メニュー
-          <button id="filter-bookmark-btn" class="bookmark-btn" onclick="app.toggleBookmarkFilter()" title="ブックマークのみ表示">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-            </svg>
-          </button>
-        </div>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="app.toggleSidebar(false)"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        設問メニュー
         <button class="close-sidebar-btn" onclick="app.toggleSidebar(false)">×</button>
-      </div>
-      <div id="sidebar-content"></div>
+    </div>
+    
+    <!-- フィルタエリア追加 -->
+    <div class="sidebar-filters">
+        <select id="difficulty-filter" onchange="app.applyFilters()">
+            <option value="all">すべての難易度</option>
+            <option value="1">難易度 1</option>
+            <option value="2">難易度 2</option>
+            <option value="3">難易度 3</option>
+            <option value="4">難易度 4</option>
+            <option value="5">難易度 5</option>
+        </select>
+        <label>
+            <input type="checkbox" id="bookmark-filter" onchange="app.applyFilters()"> ブックマークのみ表示
+        </label>
     </div>
 
-    <div id="app">
-      <!-- エディタ画面 -->
-      <div id="editor-view" class="view">
-        <div class="top-nav-bar" style="justify-content: flex-end">
-          <a class="nav-link" onclick="app.switchView('quiz')">設問ページへ遷移するリンク →</a>
+    <div id="sidebar-content"></div>
+</div>
+
+<div id="app">
+    <div id="editor-view" class="view">
+        <div class="top-nav-bar" style="justify-content: flex-end;">
+            <a class="nav-link" onclick="app.switchView('quiz')">設問ページへ遷移するリンク →</a>
         </div>
         <h2>読み込みデータ編集</h2>
-
+        
         <div class="editor-container">
-          <!-- Firebaseログインエリア -->
-          <div style="margin: 10px 0; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);">
-            <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
-            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
-            <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
-          </div>
-
-          <div class="editor-toolbar">
-            <button class="btn-secondary" onclick="app.clearText()">全削除</button>
-            <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
-            <button style="background-color: #ff9800; color: white; border: none" onclick="app.fetchRemoteData(true)">クラウドから最新データを取得</button>
-          </div>
-          <textarea id="json-input" placeholder="ここにJSONデータを貼り付けてください。複数の配列をペーストしても自動で結合されます。"></textarea>
-          <div id="json-error" class="error-message hidden">JSONの形式を満たしていません。記述を確認してください。</div>
-          <div class="editor-actions">
-            <span style="font-size: 12px; color: var(--text-muted)">※差分がある場合のみボタンが活性化します</span>
-            <button id="import-btn" disabled onclick="app.importData()">取り込みボタン</button>
-          </div>
+            <div class="editor-toolbar">
+                <button class="btn-secondary" onclick="app.clearText()">全削除</button>
+                <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
+                <button style="background-color: #ff9800; color: white; border: none;" onclick="app.fetchRemoteData(true)">クラウドから最新データを取得</button>
+            </div>
+            
+            <textarea id="json-input" placeholder="ここにJSONデータを貼り付けてください。複数の配列をペーストしても自動で結合されます。"></textarea>
+            
+            <div id="json-error" class="error-message hidden">JSONの形式を満たしていません。記述を確認してください。</div>
+            
+            <div class="editor-actions">
+                <span style="font-size: 12px; color: var(--text-muted);">※差分がある場合のみボタンが活性化します</span>
+                <button id="import-btn" disabled onclick="app.importData()">取り込みボタン</button>
+            </div>
         </div>
-      </div>
+    </div>
 
-      <!-- クイズ画面 -->
-      <div id="quiz-view" class="view hidden">
+    <div id="quiz-view" class="view hidden">
         <div class="top-nav-bar">
-          <button class="menu-btn" onclick="app.toggleSidebar(true)">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-
-        <div class="quiz-header">
-          <div>
-            <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 5px;">
-            <button id="main-bookmark-btn" class="bookmark-btn" onclick="app.toggleBookmark()" title="ブックマークに登録">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-              </svg>
+            <button class="menu-btn" onclick="app.toggleSidebar(true)">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()">回答を見る</button>
-          </div>
+            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
+        </div>
+        
+        <div class="quiz-header">
+            <div>
+                <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="bookmark-btn" onclick="app.toggleBookmark()">☆ ブックマーク</button>
+                <button id="toggle-accordion-btn" onclick="app.toggleAllAccordions()">アコーディオンを全開閉</button>
+            </div>
         </div>
 
         <div class="arrow-nav-container">
-          <button class="arrow-btn" id="btn-prev" onclick="app.prevPage()">＜</button>
-          <button class="arrow-btn" id="btn-next" onclick="app.nextPage()">＞</button>
+            <button class="arrow-btn" id="btn-prev" onclick="app.prevPage()">＜</button>
+            <button class="arrow-btn" id="btn-next" onclick="app.nextPage()">＞</button>
         </div>
 
-        <div id="question-text" class="question-text" onclick="app.toggleAllAccordions()" title="クリックで回答を開閉"></div>
-        <div id="question-translation" class="question-translation hidden" onclick="app.scrollToNextOptionOfCorrect()" style="cursor: pointer" title="クリックで正解の次の選択肢へ移動"></div>
+        <div id="question-text" class="question-text"></div>
+        <div id="question-translation" class="question-translation hidden"></div>
         <div id="options-container" class="options-list"></div>
-        <div class="app-footer">
-          <a class="footer-link" onclick="app.switchView('editor')">設定・データ編集を開く</a>
-        </div>
-      </div>
     </div>
+</div>
 
-    <!-- スクリプト -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-      import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+<script>
+const app = {
+    allData: [],      // 元の全データ
+    data: [],         // フィルタ適用後の表示データ
+    bookmarkedIds: [], // 保存されたブックマークのID配列
+    savedJsonString: "[]",
+    currentIndex: 0,
+    isAllAccordionsOpen: false,
+    
+    REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
-      // 取得した設定値
-      const firebaseConfig = {
-        apiKey: "AIzaSyC49VpvSo7xhcX4ytc1XVvswTYRryFeDHM",
-        authDomain: "vocabmaster-6736a.firebaseapp.com",
-        projectId: "vocabmaster-6736a",
-        storageBucket: "vocabmaster-6736a.firebasestorage.app",
-        messagingSenderId: "460606872770",
-        appId: "1:460606872770:web:58faf647864b979975ef5b"
-      };
+    init() {
+        this.allData = [];
+        this.data = [];
+        this.loadBookmarks(); // 保存されたブックマークを復元
 
-      const firebaseApp = initializeApp(firebaseConfig);
-      const auth = getAuth(firebaseApp);
-      const db = getFirestore(firebaseApp);
+        const jsonInput = document.getElementById('json-input');
+        jsonInput.value = this.savedJsonString;
+        jsonInput.addEventListener('input', () => this.validateJsonInput());
+        
+        this.fetchRemoteData(false);
+    },
 
-      const app = {
-        data: [],
-        bookmarks: [],
-        isBookmarkFilterActive: false,
-        savedJsonString: "[]",
-        currentIndex: 0,
-        isAllAccordionsOpen: false,
-        user: null,
-
-        touchStartX: 0, touchEndX: 0, touchStartY: 0, touchEndY: 0,
-        REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
-
-        init() {
-          const jsonInput = document.getElementById("json-input");
-          jsonInput.value = this.savedJsonString;
-          jsonInput.addEventListener("input", () => this.validateJsonInput());
-          
-          this.setupTouchEvents();
-          document.getElementById("app").addEventListener("click", (e) => this.handleEdgeClick(e));
-          
-          // Firebase認証の監視
-          onAuthStateChanged(auth, (user) => {
-            const loginBtn = document.getElementById('login-btn');
-            if (user) {
-              this.user = user;
-              if (loginBtn) loginBtn.innerText = "ログアウト";
-              this.loadBookmarks();
-            } else {
-              this.user = null;
-              if (loginBtn) loginBtn.innerText = "Googleでログイン";
-              this.loadBookmarks();
-            }
-          });
-          
-          this.fetchRemoteData(false);
-        },
-
-        // --- Firebase & ブックマーク管理 ---
-        async toggleLogin() {
-          if (this.user) {
-            await signOut(auth);
-            alert("ログアウトしました。これ以降の変更はローカルにのみ保存されます。");
-          } else {
-            const provider = new GoogleAuthProvider();
-            try {
-              await signInWithPopup(auth, provider);
-            } catch(error) {
-              console.error("ログインエラー", error);
-              alert("ログインに失敗しました。");
-            }
-          }
-        },
-
-        async loadBookmarks() {
-          if (this.user) {
-            try {
-              const docRef = doc(db, "users", this.user.uid);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                this.bookmarks = docSnap.data().bookmarks || [];
-                localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarks));
-              }
-            } catch(e) {
-              console.error("取得エラー", e);
-            }
-          } else {
+    loadBookmarks() {
+        try {
             const saved = localStorage.getItem('vocab_bookmarks');
-            if (saved) this.bookmarks = JSON.parse(saved);
-          }
-          this.updateBookmarkIcons();
-          if (this.isBookmarkFilterActive) {
-            this.renderSidebar();
-            this.renderQuiz();
-          }
-        },
+            this.bookmarkedIds = saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            this.bookmarkedIds = [];
+        }
+    },
 
-        async saveBookmarks() {
-          localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarks));
-          if (this.user) {
-            try {
-              await setDoc(doc(db, "users", this.user.uid), {
-                bookmarks: this.bookmarks
-              }, { merge: true });
-            } catch(e) {
-              console.error("クラウド保存エラー", e);
-            }
-          }
-        },
+    saveBookmarks() {
+        localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
+    },
 
-        toggleBookmark() {
-          const currentData = this.getFilteredData();
-          if (!currentData || currentData.length === 0) return;
-          
-          const q = currentData[this.currentIndex];
-          const index = this.bookmarks.indexOf(q.id);
-          
-          if (index > -1) {
-            this.bookmarks.splice(index, 1);
-          } else {
-            this.bookmarks.push(q.id);
-          }
-          
-          this.saveBookmarks();
-          this.updateBookmarkIcons();
-        },
+    toggleBookmark() {
+        const q = this.data[this.currentIndex];
+        if (!q) return;
+        
+        const qId = String(q.id);
+        const idx = this.bookmarkedIds.indexOf(qId);
+        if (idx > -1) {
+            this.bookmarkedIds.splice(idx, 1);
+        } else {
+            this.bookmarkedIds.push(qId);
+        }
+        
+        this.saveBookmarks();
+        this.updateBookmarkUI();
+        
+        // 「ブックマークのみ表示」フィルタがONの状態で外した場合は即時再フィルタ
+        if (document.getElementById('bookmark-filter').checked && idx > -1) {
+            this.applyFilters();
+        }
+    },
 
-        toggleBookmarkFilter() {
-          this.isBookmarkFilterActive = !this.isBookmarkFilterActive;
-          this.currentIndex = 0;
-          this.renderSidebar();
-          this.renderQuiz();
-        },
+    updateBookmarkUI() {
+        const q = this.data[this.currentIndex];
+        const btn = document.getElementById('bookmark-btn');
+        if (!q) {
+            btn.style.display = 'none';
+            return;
+        }
+        btn.style.display = 'block';
 
-        updateBookmarkIcons() {
-          const currentData = this.getFilteredData();
-          const mainBtn = document.getElementById('main-bookmark-btn');
-          
-          if (!currentData || currentData.length === 0) {
-            mainBtn.classList.remove('active');
-            mainBtn.querySelector('svg').setAttribute('fill', 'none');
-          } else {
-            const q = currentData[this.currentIndex];
-            if (this.bookmarks.includes(q.id)) {
-              mainBtn.classList.add('active');
-              mainBtn.querySelector('svg').setAttribute('fill', 'currentColor');
-            } else {
-              mainBtn.classList.remove('active');
-              mainBtn.querySelector('svg').setAttribute('fill', 'none');
-            }
-          }
-
-          const filterBtn = document.getElementById('filter-bookmark-btn');
-          if (this.isBookmarkFilterActive) {
-            filterBtn.classList.add('active');
-            filterBtn.querySelector('svg').setAttribute('fill', 'currentColor');
-          } else {
-            filterBtn.classList.remove('active');
-            filterBtn.querySelector('svg').setAttribute('fill', 'none');
-          }
-        },
-
-        getFilteredData() {
-          if (this.isBookmarkFilterActive) {
-            return this.data.filter(q => this.bookmarks.includes(q.id));
-          }
-          return this.data;
-        },
-
-        // --- データ通信・解析 ---
-        async fetchRemoteData(isManualClick = false) {
-          try {
-            if (isManualClick) document.getElementById("json-input").value = "通信中...";
-            const response = await fetch(this.REMOTE_JSON_URL);
+        if (this.bookmarkedIds.includes(String(q.id))) {
+            btn.classList.add('active');
+            btn.innerText = '★ ブックマーク済み';
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = '☆ ブックマーク追加';
+        }
+    },
+    
+    async fetchRemoteData(isManualClick = false) {
+        try {
+            if (isManualClick) document.getElementById('json-input').value = "通信中...";
+            
+            const response = await fetch(this.REMOTE_JSON_URL); 
             if (!response.ok) throw new Error("Network response was not ok");
+            
             const rawText = await response.text();
-            const remoteData = this.parseCustomJSON(rawText);
+            const remoteData = this.parseCustomJSON(rawText); 
+            
             const formattedJson = JSON.stringify(remoteData, null, 2);
-            document.getElementById("json-input").value = formattedJson;
+            document.getElementById('json-input').value = formattedJson;
+            
             this.importData();
+
             if (isManualClick) alert("クラウドから最新の単語データを取得し、適用しました！");
-          } catch (error) {
+        } catch (error) {
+            console.error("データの取得に失敗しました:", error);
             if (isManualClick) {
-              alert("データの取得に失敗しました。");
-              document.getElementById("json-input").value = this.savedJsonString;
+                alert("データの取得・解析に失敗しました。JSONの記述にエラーがある可能性があります。");
+                document.getElementById('json-input').value = this.savedJsonString;
             }
-          }
-        },
+        }
+    },
 
-        parseCustomJSON(inputStr) {
-          try { return JSON.parse(inputStr); } 
-          catch (e) {
-            let fixedStr = inputStr.replace(/\]\s*[^\[\]\{\}]*\s*\[/g, ",");
+    parseCustomJSON(inputStr) {
+        try { return JSON.parse(inputStr); } 
+        catch(e) {
+            let fixedStr = inputStr.replace(/\]\s*[^\[\]\{\}]*\s*\[/g, ',');
             try { return JSON.parse(fixedStr); } 
-            catch (e2) { throw new Error("Invalid JSON format"); }
-          }
-        },
+            catch(e2) { throw new Error("Invalid JSON format"); }
+        }
+    },
 
-        normalizeAndReassignIds(rawData) {
-          let flatQuestions = [];
-          const extractQuestions = (data) => {
-            if (Array.isArray(data)) { data.forEach(item => extractQuestions(item)); } 
-            else if (data && typeof data === "object") {
-              if (data.question || data.options || data.choices || data.punchline || data.sentence) {
-                flatQuestions.push(data);
-              } else if (Array.isArray(data.questions)) {
-                extractQuestions(data.questions);
-              } else {
-                for (const key in data) {
-                  if (typeof data[key] === "object") extractQuestions(data[key]);
+    normalizeAndReassignIds(rawData) {
+        let flatQuestions = [];
+        const extractQuestions = (data) => {
+            if (Array.isArray(data)) {
+                data.forEach(item => extractQuestions(item));
+            } else if (data && typeof data === 'object') {
+                if (data.question || data.options || data.choices || data.punchline || data.sentence) {
+                    flatQuestions.push(data);
+                } else if (Array.isArray(data.questions)) {
+                    extractQuestions(data.questions);
+                } else {
+                    for (const key in data) {
+                        if (typeof data[key] === 'object') extractQuestions(data[key]);
+                    }
                 }
-              }
             }
-          };
-          extractQuestions(rawData);
-          flatQuestions.forEach((q, index) => { q.id = index + 1; });
-          return flatQuestions;
-        },
+        };
+        extractQuestions(rawData);
 
-        validateJsonInput() {
-          const inputVal = document.getElementById("json-input").value;
-          const errorMsg = document.getElementById("json-error");
-          const importBtn = document.getElementById("import-btn");
-          if (!inputVal.trim()) {
-            errorMsg.classList.add("hidden"); importBtn.disabled = true; return;
-          }
-          try {
+        // IDの強制上書きを廃止。元のIDを尊重し、無い場合のみ一時IDを振る
+        flatQuestions.forEach((q, index) => {
+            if (!q.id) q.id = 'temp_' + (index + 1);
+        });
+
+        return flatQuestions;
+    },
+
+    validateJsonInput() {
+        const inputVal = document.getElementById('json-input').value;
+        const errorMsg = document.getElementById('json-error');
+        const importBtn = document.getElementById('import-btn');
+        
+        if (!inputVal.trim()) {
+            errorMsg.classList.add('hidden');
+            importBtn.disabled = true;
+            return;
+        }
+        try {
             this.parseCustomJSON(inputVal);
-            errorMsg.classList.add("hidden");
-            importBtn.disabled = !(inputVal.trim() !== this.savedJsonString);
-          } catch (e) {
-            errorMsg.classList.remove("hidden"); importBtn.disabled = true;
-          }
-        },
+            errorMsg.classList.add('hidden');
+            const isDifferent = (inputVal.trim() !== this.savedJsonString);
+            importBtn.disabled = !isDifferent;
+        } catch (e) {
+            errorMsg.classList.remove('hidden');
+            importBtn.disabled = true;
+        }
+    },
 
-        importData() {
-          const inputVal = document.getElementById("json-input").value;
-          try {
+    importData() {
+        const inputVal = document.getElementById('json-input').value;
+        try {
             let parsedData = this.parseCustomJSON(inputVal);
             parsedData = this.normalizeAndReassignIds(parsedData);
-            this.data = parsedData;
-            this.savedJsonString = JSON.stringify(this.data, null, 2);
-            document.getElementById("json-input").value = this.savedJsonString;
-            document.getElementById("import-btn").disabled = true;
+
+            this.allData = parsedData; // 元データを保持
             
-            if(this.isBookmarkFilterActive && this.getFilteredData().length === 0) {
-              this.isBookmarkFilterActive = false;
-            }
+            this.savedJsonString = JSON.stringify(this.allData, null, 2);
+            document.getElementById('json-input').value = this.savedJsonString; 
+            document.getElementById('import-btn').disabled = true;
             
-            this.currentIndex = 0;
-            this.renderSidebar();
-            this.switchView("quiz");
-          } catch (e) {
-            alert("データの取り込みに失敗しました。");
-          }
-        },
+            this.applyFilters(); // ここで this.data が生成され描画される
+            this.switchView('quiz');
+        } catch (e) {
+            console.error(e);
+            alert('データの取り込みに失敗しました。');
+        }
+    },
 
-        // --- UI・画面遷移操作 ---
-        handleEdgeClick(e) {
-          if (document.getElementById("quiz-view").classList.contains("hidden")) return;
-          const ignoredElements = ["BUTTON", "A", "TEXTAREA", "INPUT"];
-          if (ignoredElements.includes(e.target.tagName) || e.target.closest(".option-item, .sidebar, .menu-btn, .nav-link, .bookmark-btn")) return;
-          const rect = e.currentTarget.getBoundingClientRect();
-          const clickX = e.clientX - rect.left;
-          const edgeWidth = rect.width * 0.07;
-          if (clickX < edgeWidth) this.prevPage();
-          else if (clickX > rect.width - edgeWidth) this.nextPage();
-        },
+    // --- フィルタリング機能 ---
+    applyFilters() {
+        const diffVal = document.getElementById('difficulty-filter').value;
+        const onlyBookmark = document.getElementById('bookmark-filter').checked;
 
-        setupTouchEvents() {
-          const quizView = document.getElementById("quiz-view");
-          quizView.addEventListener("touchstart", (e) => {
-            this.touchStartX = e.changedTouches[0].screenX;
-            this.touchStartY = e.changedTouches[0].screenY;
-          }, { passive: true });
-          quizView.addEventListener("touchend", (e) => {
-            this.touchEndX = e.changedTouches[0].screenX;
-            this.touchEndY = e.changedTouches[0].screenY;
-            this.handleSwipe();
-          }, { passive: true });
-        },
-
-        handleSwipe() {
-          const xDiff = this.touchStartX - this.touchEndX;
-          const yDiff = this.touchStartY - this.touchEndY;
-          if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 75) {
-            if (xDiff > 0) this.nextPage(); else this.prevPage();
-          }
-        },
-
-        scrollToNextOption(currentIndex) {
-          const items = document.querySelectorAll(".option-item");
-          const nextIndex = (currentIndex + 1) % items.length;
-          const targetItem = document.getElementById(`option-item-${nextIndex}`);
-          if (targetItem) targetItem.scrollIntoView({ behavior: "smooth", block: "center" });
-        },
-
-        clearText() {
-          document.getElementById("json-input").value = "";
-          this.validateJsonInput();
-        },
-
-        scrollToBottom() {
-          const ta = document.getElementById("json-input");
-          ta.scrollTop = ta.scrollHeight;
-        },
-
-        switchView(viewName) {
-          document.getElementById("editor-view").classList.add("hidden");
-          document.getElementById("quiz-view").classList.add("hidden");
-          document.getElementById(`${viewName}-view`).classList.remove("hidden");
-          if (viewName === "quiz" && this.data.length > 0) this.renderQuiz();
-        },
-
-        scrollToNextOptionOfCorrect() {
-          const correctMark = document.querySelector(".mark-o");
-          if (correctMark) {
-            const correctItem = correctMark.closest(".option-item");
-            if (correctItem) {
-              const currentIndex = parseInt(correctItem.id.split("-")[2]);
-              this.scrollToNextOption(currentIndex);
+        this.data = this.allData.filter(q => {
+            // 難易度チェック
+            let matchDiff = true;
+            if (diffVal !== 'all') {
+                matchDiff = (String(q.difficulty) === String(diffVal));
             }
-          }
-        },
+            // ブックマークチェック
+            let matchBookmark = true;
+            if (onlyBookmark) {
+                matchBookmark = this.bookmarkedIds.includes(String(q.id));
+            }
+            return matchDiff && matchBookmark;
+        });
 
-        scrollToQuestion() {
-          const questionEl = document.getElementById("question-text");
-          if (questionEl) questionEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        },
+        this.currentIndex = 0;
+        this.renderSidebar();
+        
+        if (this.data.length > 0) {
+            this.renderQuiz();
+        } else {
+            // データが0件の場合の表示処理
+            document.getElementById('question-text').innerText = "条件に一致する問題がありません。フィルタを変更してください。";
+            document.getElementById('options-container').innerHTML = "";
+            document.getElementById('question-translation').classList.add('hidden');
+            document.getElementById('q-current').innerText = 0;
+            document.getElementById('q-total').innerText = 0;
+            document.getElementById('btn-prev').disabled = true;
+            document.getElementById('btn-next').disabled = true;
+            document.getElementById('bookmark-btn').style.display = 'none';
+        }
+    },
 
-        // --- クイズ描画 ---
-        renderQuiz() {
-          const currentData = this.getFilteredData();
-          
-          if (!currentData || currentData.length === 0) {
-            document.getElementById("question-text").innerHTML = 
-              this.isBookmarkFilterActive ? "ブックマークされた問題はありません。" : "問題文がありません";
-            document.getElementById("question-translation").classList.add("hidden");
-            document.getElementById("options-container").innerHTML = "";
-            document.getElementById("q-current").innerText = "0";
-            document.getElementById("q-total").innerText = "0";
-            this.updateBookmarkIcons();
-            this.updateNavButtons();
-            return;
-          }
+    clearText() {
+        document.getElementById('json-input').value = '';
+        this.validateJsonInput();
+    },
 
-          this.isAllAccordionsOpen = false;
-          const q = currentData[this.currentIndex];
+    scrollToBottom() {
+        const ta = document.getElementById('json-input');
+        ta.scrollTop = ta.scrollHeight;
+    },
 
-          document.getElementById("q-current").innerText = this.currentIndex + 1;
-          document.getElementById("q-total").innerText = currentData.length;
-          document.getElementById("question-text").innerText = q.question || q.word || "問題文がありません";
+    switchView(viewName) {
+        document.getElementById('editor-view').classList.add('hidden');
+        document.getElementById('quiz-view').classList.add('hidden');
+        document.getElementById(`${viewName}-view`).classList.remove('hidden');
+        if(viewName === 'quiz' && this.data.length > 0) {
+            this.renderQuiz();
+        }
+    },
 
-          const transDiv = document.getElementById("question-translation");
-          transDiv.innerText = q.question_ja || q.meaning || q.translation || "";
-          transDiv.classList.add("hidden");
+    renderQuiz() {
+        if (!this.data || this.data.length === 0) return;
+        
+        this.isAllAccordionsOpen = false;
+        const q = this.data[this.currentIndex];
+        
+        document.getElementById('q-current').innerText = this.currentIndex + 1;
+        document.getElementById('q-total').innerText = this.data.length;
+        document.getElementById('question-text').innerText = q.question || q.word || "問題文がありません";
+        
+        const transDiv = document.getElementById('question-translation');
+        transDiv.innerText = q.question_ja || q.meaning || q.translation || "";
+        transDiv.classList.add('hidden');
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
 
-          const container = document.getElementById("options-container");
-          container.innerHTML = "";
-
-          if (!q.options && !q.choices) {
+        if (!q.options && !q.choices) {
             container.innerHTML = '<div style="padding: 20px;">この問題には選択肢データがありません。</div>';
             return;
-          }
+        }
 
-          let shuffledOptions = q.options ? [...q.options] : [...q.choices];
-          for (let i = shuffledOptions.length - 1; i > 0; i--) {
+        let shuffledOptions = q.options ? [...q.options] : [...q.choices];
+        for (let i = shuffledOptions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-          }
+        }
 
-          shuffledOptions.forEach((opt, index) => {
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "option-item";
+        shuffledOptions.forEach((opt, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'option-item';
             itemDiv.id = `option-item-${index}`;
-
+            
             let wordStr = opt.word || opt;
-            let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(", ") : opt.meanings || "";
+            let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
             let isCorrect = opt.is_correct === true || q.answer === wordStr || q.answer_index === index;
             let exampleStr = opt.example || q.example || q.sentence || q.punchline || "";
 
@@ -628,168 +510,157 @@
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="accordion-body" 
-                             ${isCorrect ? 'onclick="app.scrollToQuestion()" style="cursor: pointer;"' : `onclick="app.scrollToNextOption(${index})" style="cursor: pointer;"`}>
-                            <div class="result-mark ${isCorrect ? "mark-o" : "mark-x"}">
-                                ${isCorrect ? "〇 正解" : "× 不正解"}
+                        <div class="accordion-body">
+                            <div class="result-mark ${isCorrect ? 'mark-o' : 'mark-x'}">
+                                ${isCorrect ? '〇 正解' : '× 不正解'}
                             </div>
-                            ${meaningStr ? `<div class="meaning-text">意味: ${meaningStr}</div>` : ""}
+                            ${meaningStr ? `<div class="meaning-text">意味: ${meaningStr}</div>` : ''}
                             <div class="example-text">"${exampleStr}"</div>
                         </div>
                     </div>
                 </div>
             `;
             container.appendChild(itemDiv);
-          });
+        });
 
-          this.updateNavButtons();
-          this.updateBookmarkIcons();
-          this.updateSidebarHighlight();
-        },
+        this.updateNavButtons();
+        this.updateSidebarHighlight();
+        this.updateBookmarkUI(); // ブックマークの表示状態を更新
+    },
 
-        handleOptionClick(index, isCorrect) {
-          const item = document.getElementById(`option-item-${index}`);
-          if (item.classList.contains("open")) {
-            item.classList.remove("open");
-          } else {
-            item.classList.add("open");
-            item.classList.add(isCorrect ? "answered-correct" : "answered-incorrect");
-            setTimeout(() => { item.scrollIntoView({ behavior: "smooth", block: "center" }); }, 150);
-          }
-          this.checkTranslationVisibility();
-        },
+    handleOptionClick(index, isCorrect) {
+        const item = document.getElementById(`option-item-${index}`);
+        if (item.classList.contains('open')) {
+            item.classList.remove('open');
+        } else {
+            item.classList.add('open');
+            item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
+        }
+        this.checkTranslationVisibility();
+    },
 
-        toggleAllAccordions() {
-          this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
-          const items = document.querySelectorAll(".option-item");
-          items.forEach((item) => {
-            const isCorrect = item.querySelector(".mark-o") !== null;
+    toggleAllAccordions() {
+        this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
+        const items = document.querySelectorAll('.option-item');
+        items.forEach((item) => {
+            const isCorrect = item.querySelector('.mark-o') !== null;
             if (this.isAllAccordionsOpen) {
-              item.classList.add("open");
-              item.classList.add(isCorrect ? "answered-correct" : "answered-incorrect");
+                item.classList.add('open');
+                item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
             } else {
-              item.classList.remove("open");
+                item.classList.remove('open');
             }
-          });
-          this.checkTranslationVisibility();
-          if (this.isAllAccordionsOpen) {
-            setTimeout(() => {
-              const correctItem = Array.from(items).find(item => item.querySelector(".mark-o") !== null);
-              if (correctItem) correctItem.scrollIntoView({ behavior: "smooth", block: "center" });
-            }, 300);
-          }
-        },
+        });
+        this.checkTranslationVisibility();
+    },
 
-        checkTranslationVisibility() {
-          const openItemsCount = document.querySelectorAll(".option-item.open").length;
-          const transDiv = document.getElementById("question-translation");
-          if (openItemsCount > 0 && transDiv.innerText.trim() !== "") {
-            transDiv.classList.remove("hidden");
-          } else {
-            transDiv.classList.add("hidden");
-          }
-        },
+    checkTranslationVisibility() {
+        const openItemsCount = document.querySelectorAll('.option-item.open').length;
+        const transDiv = document.getElementById('question-translation');
+        if (openItemsCount > 0 && transDiv.innerText.trim() !== "") {
+            transDiv.classList.remove('hidden');
+        } else {
+            transDiv.classList.add('hidden');
+        }
+    },
 
-        prevPage() {
-          if (this.currentIndex > 0) {
+    prevPage() {
+        if (this.currentIndex > 0) {
             this.currentIndex--;
             this.renderQuiz();
-          }
-        },
+        }
+    },
 
-        nextPage() {
-          const currentData = this.getFilteredData();
-          if (this.currentIndex < currentData.length - 1) {
+    nextPage() {
+        if (this.currentIndex < this.data.length - 1) {
             this.currentIndex++;
             this.renderQuiz();
-          }
-        },
+        }
+    },
 
-        goToPage(index) {
-          const currentData = this.getFilteredData();
-          if (index >= 0 && index < currentData.length) {
+    goToPage(index) {
+        if (index >= 0 && index < this.data.length) {
             this.currentIndex = index;
             this.renderQuiz();
-          }
-        },
+        }
+    },
 
-        updateNavButtons() {
-          const currentData = this.getFilteredData();
-          document.getElementById("btn-prev").disabled = this.currentIndex === 0;
-          document.getElementById("btn-next").disabled = currentData.length === 0 || this.currentIndex === currentData.length - 1;
-        },
+    updateNavButtons() {
+        document.getElementById('btn-prev').disabled = (this.currentIndex === 0);
+        document.getElementById('btn-next').disabled = (this.currentIndex === this.data.length - 1);
+    },
 
-        // --- サイドバー描画 ---
-        toggleSidebar(show) {
-          const sidebar = document.getElementById("sidebar");
-          const overlay = document.getElementById("sidebar-overlay");
-          if (show) {
-            sidebar.classList.add("open"); overlay.classList.add("active");
-            this.updateSidebarHighlight();
-          } else {
-            sidebar.classList.remove("open"); overlay.classList.remove("active");
-          }
-        },
+    toggleSidebar(show) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (show) {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+        } else {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+    },
 
-        renderSidebar() {
-          const container = document.getElementById("sidebar-content");
-          container.innerHTML = "";
+    renderSidebar() {
+        const container = document.getElementById('sidebar-content');
+        container.innerHTML = '';
+        
+        if(this.data.length === 0) {
+             container.innerHTML = '<div style="padding: 10px; color: #666; font-size: 14px;">該当する問題がありません。</div>';
+             return;
+        }
+        
+        const groupSize = 50;
+        const totalGroups = Math.ceil(this.data.length / groupSize);
 
-          const currentData = this.getFilteredData();
-          if (currentData.length === 0) {
-            container.innerHTML = "<div style='padding: 20px; color: #666; font-size: 14px;'>表示できる問題がありません。</div>";
-            return;
-          }
-
-          const groupSize = 50;
-          const totalGroups = Math.ceil(currentData.length / groupSize);
-
-          for (let g = 0; g < totalGroups; g++) {
+        for (let g = 0; g < totalGroups; g++) {
             const start = g * groupSize + 1;
-            const end = Math.min((g + 1) * groupSize, currentData.length);
+            const end = Math.min((g + 1) * groupSize, this.data.length);
 
-            const details = document.createElement("details");
-            const summary = document.createElement("summary");
+            const details = document.createElement('details');
+            const summary = document.createElement('summary');
             summary.innerText = `${start} 〜 ${end} 件目`;
             details.appendChild(summary);
 
-            const list = document.createElement("div");
-            list.className = "sidebar-list";
+            const list = document.createElement('div');
+            list.className = 'sidebar-list';
 
             for (let i = start - 1; i < end; i++) {
-              const q = currentData[i];
-              const item = document.createElement("div");
-              item.className = "sidebar-item";
-              item.id = `sidebar-item-${i}`;
-              item.innerText = `- Question ${q.id}`;
-              item.onclick = () => {
-                this.goToPage(i);
-                this.toggleSidebar(false);
-              };
-              list.appendChild(item);
+                const item = document.createElement('div');
+                item.className = 'sidebar-item';
+                item.id = `sidebar-item-${i}`;
+                
+                // ブックマーク状況をリストにも反映（任意）
+                const qId = String(this.data[i].id);
+                const isBookmarked = this.bookmarkedIds.includes(qId);
+                const icon = isBookmarked ? '★ ' : '';
+
+                item.innerText = `${icon}Question ${i + 1}`;
+                item.onclick = () => {
+                    this.goToPage(i);
+                    this.toggleSidebar(false);
+                };
+                list.appendChild(item);
             }
             details.appendChild(list);
             container.appendChild(details);
-          }
-        },
-
-        updateSidebarHighlight() {
-          document.querySelectorAll(".sidebar-item").forEach(el => el.classList.remove("active"));
-          const activeEl = document.getElementById(`sidebar-item-${this.currentIndex}`);
-          if (activeEl) {
-            activeEl.classList.add("active");
-            const parentDetails = activeEl.closest("details");
-            if (parentDetails) parentDetails.open = true;
-            if (document.getElementById("sidebar").classList.contains("open")) {
-                activeEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-            }
-          }
         }
-      };
+    },
 
-      // モジュールから呼び出せるように window に登録
-      window.app = app;
-      document.addEventListener("DOMContentLoaded", () => app.init());
-    </script>
-  </body>
+    updateSidebarHighlight() {
+        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+        const activeEl = document.getElementById(`sidebar-item-${this.currentIndex}`);
+        if (activeEl) {
+            activeEl.classList.add('active');
+            const parentDetails = activeEl.closest('details');
+            if (parentDetails) parentDetails.open = true;
+            activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => app.init());
+</script>
+</body>
 </html>
