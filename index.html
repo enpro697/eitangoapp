@@ -30,6 +30,8 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            /* 画面端のタップ用にスクロール時の挙動を滑らかに */
+            scroll-behavior: smooth; 
         }
 
         #app {
@@ -87,7 +89,7 @@
         .arrow-btn:hover { background-color: var(--primary-light); }
         .arrow-btn:disabled { color: #ccc; background: none; }
 
-        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);}
+        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color); scroll-margin-top: 20px;}
         .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -104,7 +106,8 @@
 
         .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; background-color: #fafafa; }
         .accordion-inner { overflow: hidden; }
-        .accordion-body { padding: 0 20px 20px 20px; }
+        /* アコーディオンの中身（タップ領域としてわかりやすくカーソル変更） */
+        .accordion-body { padding: 0 20px 20px 20px; cursor: pointer; }
         .option-item.open .accordion-content { grid-template-rows: 1fr; }
         .option-item.open .option-button { border-bottom: 1px solid var(--border-color); }
 
@@ -160,7 +163,7 @@
         <button class="close-sidebar-btn" onclick="app.toggleSidebar(false)">×</button>
     </div>
     
-    <!-- フィルタエリア追加 -->
+    <!-- フィルタエリア -->
     <div class="sidebar-filters">
         <select id="difficulty-filter" onchange="app.applyFilters()">
             <option value="all">すべての難易度</option>
@@ -246,13 +249,45 @@ const app = {
     init() {
         this.allData = [];
         this.data = [];
-        this.loadBookmarks(); // 保存されたブックマークを復元
+        this.loadBookmarks(); 
 
         const jsonInput = document.getElementById('json-input');
         jsonInput.value = this.savedJsonString;
         jsonInput.addEventListener('input', () => this.validateJsonInput());
         
         this.fetchRemoteData(false);
+        this.setupGlobalClickListeners(); // グローバルクリックイベントの登録
+    },
+
+    // 追加: 画面端のクリックや、アコーディオン内容のクリックを検知する
+    setupGlobalClickListeners() {
+        document.addEventListener('click', (e) => {
+            // クイズ画面以外の時は無視
+            if (!document.getElementById('editor-view').classList.contains('hidden')) return;
+
+            // 1. アコーディオン内（解説/例文部分）がタップされたら問題文へスクロール
+            if (e.target.closest('.accordion-body')) {
+                document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            // 2. 画面端タップで前後の問題へ移動
+            // 操作対象のボタンやテキスト、メニュー等をタップした場合は無視する
+            const ignoreSelectors = ['button', 'a', '.option-item', '.sidebar', '.sidebar-overlay', 'select'];
+            if (ignoreSelectors.some(selector => e.target.closest(selector))) {
+                return;
+            }
+
+            const clickX = e.clientX;
+            const screenWidth = window.innerWidth;
+            
+            // 画面幅の15%より左をタップで「前へ」、85%より右をタップで「次へ」
+            if (clickX < screenWidth * 0.15) {
+                this.prevPage();
+            } else if (clickX > screenWidth * 0.85) {
+                this.nextPage();
+            }
+        });
     },
 
     loadBookmarks() {
@@ -283,7 +318,6 @@ const app = {
         this.saveBookmarks();
         this.updateBookmarkUI();
         
-        // 「ブックマークのみ表示」フィルタがONの状態で外した場合は即時再フィルタ
         if (document.getElementById('bookmark-filter').checked && idx > -1) {
             this.applyFilters();
         }
@@ -360,7 +394,6 @@ const app = {
         };
         extractQuestions(rawData);
 
-        // IDの強制上書きを廃止。元のIDを尊重し、無い場合のみ一時IDを振る
         flatQuestions.forEach((q, index) => {
             if (!q.id) q.id = 'temp_' + (index + 1);
         });
@@ -395,13 +428,13 @@ const app = {
             let parsedData = this.parseCustomJSON(inputVal);
             parsedData = this.normalizeAndReassignIds(parsedData);
 
-            this.allData = parsedData; // 元データを保持
+            this.allData = parsedData; 
             
             this.savedJsonString = JSON.stringify(this.allData, null, 2);
             document.getElementById('json-input').value = this.savedJsonString; 
             document.getElementById('import-btn').disabled = true;
             
-            this.applyFilters(); // ここで this.data が生成され描画される
+            this.applyFilters(); 
             this.switchView('quiz');
         } catch (e) {
             console.error(e);
@@ -409,18 +442,15 @@ const app = {
         }
     },
 
-    // --- フィルタリング機能 ---
     applyFilters() {
         const diffVal = document.getElementById('difficulty-filter').value;
         const onlyBookmark = document.getElementById('bookmark-filter').checked;
 
         this.data = this.allData.filter(q => {
-            // 難易度チェック
             let matchDiff = true;
             if (diffVal !== 'all') {
                 matchDiff = (String(q.difficulty) === String(diffVal));
             }
-            // ブックマークチェック
             let matchBookmark = true;
             if (onlyBookmark) {
                 matchBookmark = this.bookmarkedIds.includes(String(q.id));
@@ -434,7 +464,6 @@ const app = {
         if (this.data.length > 0) {
             this.renderQuiz();
         } else {
-            // データが0件の場合の表示処理
             document.getElementById('question-text').innerText = "条件に一致する問題がありません。フィルタを変更してください。";
             document.getElementById('options-container').innerHTML = "";
             document.getElementById('question-translation').classList.add('hidden');
@@ -525,17 +554,32 @@ const app = {
 
         this.updateNavButtons();
         this.updateSidebarHighlight();
-        this.updateBookmarkUI(); // ブックマークの表示状態を更新
+        this.updateBookmarkUI();
+        window.scrollTo({ top: 0, behavior: 'auto' }); // ページが変わったら一番上に戻す
     },
 
+    // 修正: 正解をクリックした際に全アコーディオンを開く機能を追加
     handleOptionClick(index, isCorrect) {
         const item = document.getElementById(`option-item-${index}`);
+        
         if (item.classList.contains('open')) {
             item.classList.remove('open');
         } else {
             item.classList.add('open');
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
         }
+
+        // 正解がクリックされた場合、全てのアコーディオンを自動で開く
+        if (isCorrect) {
+            this.isAllAccordionsOpen = true;
+            const items = document.querySelectorAll('.option-item');
+            items.forEach((optItem) => {
+                const optIsCorrect = optItem.querySelector('.mark-o') !== null;
+                optItem.classList.add('open');
+                optItem.classList.add(optIsCorrect ? 'answered-correct' : 'answered-incorrect');
+            });
+        }
+
         this.checkTranslationVisibility();
     },
 
@@ -631,7 +675,6 @@ const app = {
                 item.className = 'sidebar-item';
                 item.id = `sidebar-item-${i}`;
                 
-                // ブックマーク状況をリストにも反映（任意）
                 const qId = String(this.data[i].id);
                 const isBookmarked = this.bookmarkedIds.includes(qId);
                 const icon = isBookmarked ? '★ ' : '';
