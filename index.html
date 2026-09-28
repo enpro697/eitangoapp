@@ -89,13 +89,14 @@
         .arrow-btn:hover { background-color: var(--primary-light); }
         .arrow-btn:disabled { color: #ccc; background: none; }
 
-        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color); scroll-margin-top: 20px;}
-        .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; }
+        /* スクロール位置とタップ領域の調整 */
+        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color); scroll-margin-top: 20px; cursor: pointer; }
+        .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; scroll-margin-top: 20px; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 選択肢とアコーディオン */
         .options-list { display: flex; flex-direction: column; gap: 12px; }
-        .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); }
+        .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); scroll-margin-top: 20px; }
         .option-button { width: 100%; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
         .option-button:hover { background-color: #f9f9f9; }
         
@@ -259,20 +260,69 @@ const app = {
         this.setupGlobalClickListeners(); // グローバルクリックイベントの登録
     },
 
-    // 追加: 画面端のクリックや、アコーディオン内容のクリックを検知する
     setupGlobalClickListeners() {
         document.addEventListener('click', (e) => {
             // クイズ画面以外の時は無視
             if (!document.getElementById('editor-view').classList.contains('hidden')) return;
 
-            // 1. アコーディオン内（解説/例文部分）がタップされたら問題文へスクロール
-            if (e.target.closest('.accordion-body')) {
-                document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // 1. 設問の英語（#question-text）クリックでアコーディオン全開閉
+            if (e.target.closest('#question-text')) {
+                this.toggleAllAccordions();
+                return; // 前へ・次への誤爆を防ぐため終了
+            }
+
+            // 2. 設問の日本語（#question-translation）クリック時の遷移
+            if (e.target.closest('#question-translation')) {
+                const options = Array.from(document.querySelectorAll('.option-item'));
+                const correctIndex = options.findIndex(opt => opt.classList.contains('answered-correct'));
+                
+                if (correctIndex !== -1) {
+                    let targetIndex = correctIndex + 1;
+                    // 正解が一番下の選択肢なら、一番上（index = 0）の誤答へ遷移
+                    if (targetIndex >= options.length) {
+                        targetIndex = 0;
+                    }
+                    const targetEl = document.getElementById(`option-item-${targetIndex}`);
+                    if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
                 return;
             }
 
-            // 2. 画面端タップで前後の問題へ移動
-            // 操作対象のボタンやテキスト、メニュー等をタップした場合は無視する
+            // 3. アコーディオン内（解説/例文部分）クリック時の遷移
+            const accordionBody = e.target.closest('.accordion-body');
+            if (accordionBody) {
+                const optionItem = accordionBody.closest('.option-item');
+                const options = Array.from(document.querySelectorAll('.option-item'));
+                const currentIndex = options.indexOf(optionItem);
+
+                if (optionItem.classList.contains('answered-correct')) {
+                    // 例外：正解の選択肢の時は「設問の日本語」に遷移
+                    const transEl = document.getElementById('question-translation');
+                    if (!transEl.classList.contains('hidden')) {
+                        transEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        // 万が一閉じていたら一番上の問題文へ
+                        document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                } else {
+                    // 基本：下に遷移。一番下の選択肢なら「設問の日本語」へ
+                    let targetIndex = currentIndex + 1;
+                    if (targetIndex >= options.length) {
+                        const transEl = document.getElementById('question-translation');
+                        if (!transEl.classList.contains('hidden')) {
+                            transEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } else {
+                            document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    } else {
+                        const targetEl = document.getElementById(`option-item-${targetIndex}`);
+                        if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+                return;
+            }
+
+            // 4. 画面端タップで前後の問題へ移動
             const ignoreSelectors = ['button', 'a', '.option-item', '.sidebar', '.sidebar-overlay', 'select'];
             if (ignoreSelectors.some(selector => e.target.closest(selector))) {
                 return;
@@ -281,7 +331,6 @@ const app = {
             const clickX = e.clientX;
             const screenWidth = window.innerWidth;
             
-            // 画面幅の15%より左をタップで「前へ」、85%より右をタップで「次へ」
             if (clickX < screenWidth * 0.15) {
                 this.prevPage();
             } else if (clickX > screenWidth * 0.85) {
@@ -555,10 +604,9 @@ const app = {
         this.updateNavButtons();
         this.updateSidebarHighlight();
         this.updateBookmarkUI();
-        window.scrollTo({ top: 0, behavior: 'auto' }); // ページが変わったら一番上に戻す
+        window.scrollTo({ top: 0, behavior: 'auto' }); 
     },
 
-    // 修正: 正解をクリックした際に全アコーディオンを開く機能を追加
     handleOptionClick(index, isCorrect) {
         const item = document.getElementById(`option-item-${index}`);
         
@@ -569,7 +617,6 @@ const app = {
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
         }
 
-        // 正解がクリックされた場合、全てのアコーディオンを自動で開く
         if (isCorrect) {
             this.isAllAccordionsOpen = true;
             const items = document.querySelectorAll('.option-item');
