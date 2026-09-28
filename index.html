@@ -296,14 +296,8 @@ const app = {
                 const currentIndex = options.indexOf(optionItem);
 
                 if (optionItem.classList.contains('answered-correct')) {
-                    // 例外：正解の選択肢の時は「設問の日本語」に遷移
-                    const transEl = document.getElementById('question-translation');
-                    if (!transEl.classList.contains('hidden')) {
-                        transEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    } else {
-                        // 万が一閉じていたら一番上の問題文へ
-                        document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
+                    // 例外：正解の選択肢の時は「設問の英語」に遷移（今回修正箇所）
+                    document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } else {
                     // 基本：下に遷移。一番下の選択肢なら「設問の日本語」へ
                     let targetIndex = currentIndex + 1;
