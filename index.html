@@ -190,6 +190,13 @@
         <h2>読み込みデータ編集</h2>
         
         <div class="editor-container">
+            <!-- Firebaseログインエリア -->
+            <div style="margin: 10px 0; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);">
+                <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
+                <p id="login-desc" style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
+                <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
+            </div>
+
             <div class="editor-toolbar">
                 <button class="btn-secondary" onclick="app.clearText()">全削除</button>
                 <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
@@ -236,7 +243,24 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyC49VpvSo7xhcX4ytc1XVvswTYRryFeDHM",
+    authDomain: "vocabmaster-6736a.firebaseapp.com",
+    projectId: "vocabmaster-6736a",
+    storageBucket: "vocabmaster-6736a.firebasestorage.app",
+    messagingSenderId: "460606872770",
+    appId: "1:460606872770:web:58faf647864b979975ef5b"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+
 const app = {
     allData: [],      // 元の全データ
     data: [],         // フィルタ適用後の表示データ
@@ -244,41 +268,81 @@ const app = {
     savedJsonString: "[]",
     currentIndex: 0,
     isAllAccordionsOpen: false,
+    user: null,       // Firebaseユーザー情報
     
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
     init() {
         this.allData = [];
         this.data = [];
-        this.loadBookmarks(); 
 
         const jsonInput = document.getElementById('json-input');
         jsonInput.value = this.savedJsonString;
         jsonInput.addEventListener('input', () => this.validateJsonInput());
         
+        // 認証状態の監視 (ログイン状況が変わるたびにブックマークを同期し、UIを更新)
+        onAuthStateChanged(auth, (user) => {
+            const loginBtn = document.getElementById('login-btn');
+            const loginDesc = document.getElementById('login-desc');
+            
+            if (user) {
+                this.user = user;
+                if (loginBtn) {
+                    loginBtn.innerText = "ログアウト";
+                    loginBtn.style.backgroundColor = "#757575"; // ログアウト用の落ち着いた色
+                }
+                if (loginDesc) {
+                    loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${user.displayName || 'ユーザー'} としてログイン中です。ブックマークは自動保存されます。`;
+                }
+            } else {
+                this.user = null;
+                if (loginBtn) {
+                    loginBtn.innerText = "Googleでログイン";
+                    loginBtn.style.backgroundColor = "#db4437"; // 元のGoogleレッド
+                }
+                if (loginDesc) {
+                    loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークが同期されます。";
+                }
+            }
+            this.loadBookmarks();
+        });
+        
         this.fetchRemoteData(false);
-        this.setupGlobalClickListeners(); // グローバルクリックイベントの登録
+        this.setupGlobalClickListeners();
+    },
+
+    // Firebase ログイン・ログアウト処理
+    async toggleLogin() {
+        if (this.user) {
+            await signOut(auth);
+            alert("ログアウトしました。これ以降の変更はローカルにのみ保存されます。");
+        } else {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch(error) {
+                console.error("ログインエラー", error);
+            }
+        }
     },
 
     setupGlobalClickListeners() {
         document.addEventListener('click', (e) => {
-            // クイズ画面以外の時は無視
             if (!document.getElementById('editor-view').classList.contains('hidden')) return;
 
-            // 1. 設問の英語（#question-text）クリックでアコーディオン全開閉
+            // 1. 設問の英語クリック
             if (e.target.closest('#question-text')) {
                 this.toggleAllAccordions();
-                return; // 前へ・次への誤爆を防ぐため終了
+                return;
             }
 
-            // 2. 設問の日本語（#question-translation）クリック時の遷移
+            // 2. 設問の日本語クリック
             if (e.target.closest('#question-translation')) {
                 const options = Array.from(document.querySelectorAll('.option-item'));
                 const correctIndex = options.findIndex(opt => opt.classList.contains('answered-correct'));
                 
                 if (correctIndex !== -1) {
                     let targetIndex = correctIndex + 1;
-                    // 正解が一番下の選択肢なら、一番上（index = 0）の誤答へ遷移
                     if (targetIndex >= options.length) {
                         targetIndex = 0;
                     }
@@ -288,7 +352,7 @@ const app = {
                 return;
             }
 
-            // 3. アコーディオン内（解説/例文部分）クリック時の遷移
+            // 3. アコーディオン内クリック
             const accordionBody = e.target.closest('.accordion-body');
             if (accordionBody) {
                 const optionItem = accordionBody.closest('.option-item');
@@ -296,10 +360,8 @@ const app = {
                 const currentIndex = options.indexOf(optionItem);
 
                 if (optionItem.classList.contains('answered-correct')) {
-                    // 例外：正解の選択肢の時は「設問の英語」に遷移（今回修正箇所）
                     document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } else {
-                    // 基本：下に遷移。一番下の選択肢なら「設問の日本語」へ
                     let targetIndex = currentIndex + 1;
                     if (targetIndex >= options.length) {
                         const transEl = document.getElementById('question-translation');
@@ -316,7 +378,7 @@ const app = {
                 return;
             }
 
-            // 4. 画面端タップで前後の問題へ移動
+            // 4. 画面端タップ
             const ignoreSelectors = ['button', 'a', '.option-item', '.sidebar', '.sidebar-overlay', 'select'];
             if (ignoreSelectors.some(selector => e.target.closest(selector))) {
                 return;
@@ -333,17 +395,52 @@ const app = {
         });
     },
 
-    loadBookmarks() {
-        try {
-            const saved = localStorage.getItem('vocab_bookmarks');
-            this.bookmarkedIds = saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            this.bookmarkedIds = [];
+    async loadBookmarks() {
+        if (this.user) {
+            // クラウド（Firebase）から取得
+            try {
+                const docRef = doc(db, "users", this.user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    this.bookmarkedIds = docSnap.data().bookmarks || [];
+                    localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds)); // ローカルも同期
+                }
+            } catch(e) {
+                console.error("取得エラー", e);
+            }
+        } else {
+            // ログアウト時：ローカルストレージから取得
+            try {
+                const saved = localStorage.getItem('vocab_bookmarks');
+                this.bookmarkedIds = saved ? JSON.parse(saved) : [];
+            } catch (e) {
+                this.bookmarkedIds = [];
+            }
+        }
+
+        this.updateBookmarkUI();
+        this.renderSidebar();
+
+        // フィルターONの時は表示データを更新
+        if (document.getElementById('bookmark-filter').checked) {
+            this.applyFilters();
         }
     },
 
-    saveBookmarks() {
+    async saveBookmarks() {
+        // 常にローカルには保存
         localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
+        
+        // ログインしていればクラウドにも保存
+        if (this.user) {
+            try {
+                await setDoc(doc(db, "users", this.user.uid), {
+                    bookmarks: this.bookmarkedIds
+                }, { merge: true });
+            } catch(e) {
+                console.error("クラウド保存エラー", e);
+            }
+        }
     },
 
     toggleBookmark() {
@@ -361,6 +458,7 @@ const app = {
         this.saveBookmarks();
         this.updateBookmarkUI();
         
+        // ブックマークフィルターがONの状態で外した場合は即座にフィルタを再適用
         if (document.getElementById('bookmark-filter').checked && idx > -1) {
             this.applyFilters();
         }
@@ -744,6 +842,7 @@ const app = {
     }
 };
 
+window.app = app;
 document.addEventListener('DOMContentLoaded', () => app.init());
 </script>
 </body>
