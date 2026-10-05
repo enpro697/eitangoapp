@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>JSON ID重複チェック＆再割り当てツール</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+        .container { display: flex; gap: 20px; }
+        .box { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        textarea { width: 100%; height: 300px; font-family: monospace; }
+        .controls { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        button { padding: 8px 16px; cursor: pointer; }
+        .log { background: #fff; padding: 10px; border: 1px solid #ddd; height: 100px; overflow-y: auto; color: #d32f2f; font-weight: bold; }
+        input[type="datetime-local"] { padding: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>JSON ID 一意化ツール</h2>
+    
+    <div class="controls">
+        <label>From: <input type="datetime-local" id="dateFrom"></label>
+        <label>To: <input type="datetime-local" id="dateTo"></label>
+        <button onclick="processJSON()">チェック＆ID再割り当て実行</button>
+    </div>
+
+    <div class="container">
+        <div class="box">
+            <label>入力 JSON (複数の配列 `][` も自動補正します):</label>
+            <textarea id="inputJson"></textarea>
+        </div>
+        <div class="box">
+            <label>出力 JSON (修正済み・アプリ用):</label>
+            <textarea id="outputJson"></textarea>
+        </div>
+    </div>
+
+    <h3>処理ログ・重複チェック結果</h3>
+    <div class="log" id="logArea"></div>
+
+    <script>
+        function formatDate(date) {
+            const pad = (n) => n.toString().padStart(2, '0');
+            return date.getFullYear() +
+                   pad(date.getMonth() + 1) +
+                   pad(date.getDate()) +
+                   pad(date.getHours()) +
+                   pad(date.getMinutes()) +
+                   pad(date.getSeconds());
+        }
+
+        function processJSON() {
+            const inputTxt = document.getElementById('inputJson').value.trim();
+            const logArea = document.getElementById('logArea');
+            const dateFrom = new Date(document.getElementById('dateFrom').value);
+            const dateTo = new Date(document.getElementById('dateTo').value);
+
+            logArea.innerHTML = "";
+
+            if (!inputTxt) {
+                logArea.innerHTML = "JSONを入力してください。";
+                return;
+            }
+            if (isNaN(dateFrom.getTime()) || isNaN(dateTo.getTime())) {
+                logArea.innerHTML = "From と To の日時を正しく設定してください。";
+                return;
+            }
+            if (dateFrom >= dateTo) {
+                logArea.innerHTML = "To の日時は From より後に設定してください。";
+                return;
+            }
+
+            let parsedData;
+            try {
+                let fixedTxt = inputTxt;
+                
+                // 先頭と末尾の余分なブラケットを一旦外す
+                if (fixedTxt.startsWith('[')) fixedTxt = fixedTxt.substring(1);
+                if (fixedTxt.endsWith(']')) fixedTxt = fixedTxt.substring(0, fixedTxt.length - 1);
+                
+                // 途中の配列同士の切れ目 `] [` を `],[` に置換
+                fixedTxt = fixedTxt.replace(/\]\s*\[/g, '],[');
+                
+                // 全体を二次元配列として確実に囲み直す
+                fixedTxt = '[[' + fixedTxt + ']]';
+                
+                parsedData = JSON.parse(fixedTxt);
+            } catch (e) {
+                logArea.innerHTML = "JSONのパースに失敗しました。入力形式を確認してください。<br>" + e.message;
+                return;
+            }
+
+            // 1. 重複チェック
+            let allIds = new Set();
+            let duplicates = [];
+            parsedData.forEach(batch => {
+                batch.forEach(item => {
+                    if (allIds.has(item.id)) {
+                        duplicates.push(item.id);
+                    } else {
+                        allIds.add(item.id);
+                    }
+                });
+            });
+
+            if (duplicates.length > 0) {
+                logArea.innerHTML += "【警告】以下のIDが重複していました:<br>" + duplicates.join(", ") + "<br><br>";
+            } else {
+                logArea.innerHTML += "元のデータにIDの重複はありませんでした。<br><br>";
+            }
+
+            // 2. IDの再割り当て (From ~ To の間でバッチごとに均等に時間を割り振る)
+            const totalBatches = parsedData.length;
+            const timeDiff = dateTo.getTime() - dateFrom.getTime();
+            const interval = totalBatches > 1 ? Math.floor(timeDiff / (totalBatches - 1)) : 0;
+
+            parsedData.forEach((batch, batchIndex) => {
+                const batchTime = new Date(dateFrom.getTime() + (interval * batchIndex));
+                const timePrefix = formatDate(batchTime);
+
+                batch.forEach((item, itemIndex) => {
+                    // 連番 (01, 02, ... 19)
+                    const serialNumber = (itemIndex + 1).toString().padStart(2, '0');
+                    item.id = timePrefix + serialNumber;
+                });
+            });
+
+            // 3. アプリ読み込み用にフラットな1つの配列に変換
+            const flatData = parsedData.flat();
+
+            // 最終チェック
+            let newIds = new Set();
+            let newDuplicates = false;
+            flatData.forEach(item => {
+                if (newIds.has(item.id)) newDuplicates = true;
+                newIds.add(item.id);
+            });
+
+            if (newDuplicates) {
+                logArea.innerHTML += "【エラー】再割り当て後に重複が発生しました。From-Toの期間を広げてください。";
+            } else {
+                logArea.innerHTML += "新しいIDの割り当てが完了し、アプリ用に最適化して出力しました。";
+            }
+
+            document.getElementById('outputJson').value = JSON.stringify(flatData, null, 2);
+        }
+
+        window.onload = () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('dateFrom').value = now.toISOString().slice(0, 16);
+            
+            const later = new Date(now.getTime() + 60 * 60 * 1000); 
+            document.getElementById('dateTo').value = later.toISOString().slice(0, 16);
+        };
+    </script>
+</body>
+</html>
