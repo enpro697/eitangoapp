@@ -699,42 +699,47 @@ const app = {
         window.scrollTo({ top: 0, behavior: 'auto' }); 
     },
 
-    handleOptionClick(index, isCorrect) {
+   handleOptionClick(index, isCorrect) {
         const item = document.getElementById(`option-item-${index}`);
-        
         if (item.classList.contains('open')) {
             item.classList.remove('open');
         } else {
             item.classList.add('open');
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
+            
+            // 正解を開いた場合、アニメーションに合わせてスクロール
+            if (isCorrect) {
+                setTimeout(() => {
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
         }
-
-        if (isCorrect) {
-            this.isAllAccordionsOpen = true;
-            const items = document.querySelectorAll('.option-item');
-            items.forEach((optItem) => {
-                const optIsCorrect = optItem.querySelector('.mark-o') !== null;
-                optItem.classList.add('open');
-                optItem.classList.add(optIsCorrect ? 'answered-correct' : 'answered-incorrect');
-            });
-        }
-
         this.checkTranslationVisibility();
     },
 
-    toggleAllAccordions() {
+  toggleAllAccordions() {
         this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
         const items = document.querySelectorAll('.option-item');
+        let correctItem = null;
+
         items.forEach((item) => {
             const isCorrect = item.querySelector('.mark-o') !== null;
             if (this.isAllAccordionsOpen) {
                 item.classList.add('open');
                 item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
+                if (isCorrect) correctItem = item; // 正解の要素を記憶
             } else {
                 item.classList.remove('open');
             }
         });
         this.checkTranslationVisibility();
+
+        // 全開閉ボタンで開いた時、正解の要素へ自動スクロール
+        if (this.isAllAccordionsOpen && correctItem) {
+            setTimeout(() => {
+                correctItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        }
     },
 
     checkTranslationVisibility() {
