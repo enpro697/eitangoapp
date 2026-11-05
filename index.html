@@ -241,11 +241,17 @@
             <div style="margin: 10px 0; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);">
                 <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
                 <p id="login-desc" style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
-                <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
+                    <!-- 新規：手動同期＆クリーンアップボタン -->
+                    <button id="sync-btn" onclick="app.syncAndCleanBookmarks()" style="background-color: #4CAF50; display: none;">クラウド同期＆データ整理</button>
+                </div>
             </div>
 
             <div class="editor-toolbar">
                 <button class="btn-secondary" onclick="app.clearText()">全削除</button>
+                <!-- 新規：全コピーボタン -->
+                <button class="btn-secondary" onclick="app.copyText()">全コピー</button>
                 <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
                 <button style="background-color: #ff9800; color: white; border: none;" onclick="app.fetchRemoteData(true)">クラウドから最新データを取得</button>
             </div>
@@ -289,8 +295,8 @@
         <div id="options-container" class="options-list"></div>
 
         <div class="bottom-nav-bar">
-            <a class="nav-link" onclick="app.switchView('editor')">編集ページ</a>
-            <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ</a>
+            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
+            <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ →</a>
         </div>
     </div>
 
@@ -377,12 +383,16 @@ const app = {
         onAuthStateChanged(auth, (user) => {
             const loginBtn = document.getElementById('login-btn');
             const loginDesc = document.getElementById('login-desc');
+            const syncBtn = document.getElementById('sync-btn');
             
             if (user) {
                 this.user = user;
                 if (loginBtn) {
                     loginBtn.innerText = "ログアウト";
                     loginBtn.style.backgroundColor = "#757575"; 
+                }
+                if (syncBtn) {
+                    syncBtn.style.display = "block";
                 }
                 if (loginDesc) {
                     loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${user.displayName || 'ユーザー'} としてログイン中です。`;
@@ -392,6 +402,9 @@ const app = {
                 if (loginBtn) {
                     loginBtn.innerText = "Googleでログイン";
                     loginBtn.style.backgroundColor = "#db4437"; 
+                }
+                if (syncBtn) {
+                    syncBtn.style.display = "none";
                 }
                 if (loginDesc) {
                     loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークが同期されます。";
@@ -578,7 +591,6 @@ const app = {
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
                 
-                // ① 白いカード(#app)の完全に外側、または緑のパディング領域（e.target === appEl）をクリックした場合
                 if (!appEl.contains(e.target) || e.target === appEl) {
                     if (clickX < screenWidth / 2) {
                         this.isNavSwapped ? this.nextPage() : this.prevPage();
@@ -588,7 +600,6 @@ const app = {
                     return;
                 }
 
-                // ② スマホなどでカード内側であっても、画面端15%をタップした場合
                 if (clickX < screenWidth * 0.15) {
                     this.isNavSwapped ? this.nextPage() : this.prevPage();
                     return;
@@ -737,6 +748,75 @@ const app = {
         } else {
             btn.classList.remove('active');
             btn.innerText = '☆ 設問をブックマーク';
+        }
+    },
+
+    // --------------------------------------------------------
+    // 全コピー機能 ＆ クラウド同期・クリーンアップ機能の追加
+    // --------------------------------------------------------
+    async copyText() {
+        const ta = document.getElementById('json-input');
+        if (!ta.value) return;
+        try {
+            await navigator.clipboard.writeText(ta.value);
+            alert("JSONデータをクリップボードにコピーしました！");
+        } catch (err) {
+            alert("コピーに失敗しました。手動でコピーしてください。");
+        }
+    },
+
+    async syncAndCleanBookmarks() {
+        if (!this.user) {
+            alert("ログインしていません。");
+            return;
+        }
+        if (!this.allData || this.allData.length === 0) {
+            alert("単語データが読み込まれていません。先に「クラウドから最新データを取得」するか、データを取り込んでください。");
+            return;
+        }
+
+        // ゴミデータのお掃除
+        const validIds = new Set(this.allData.map(q => String(q.id)));
+        const originalCount = this.bookmarkedIds.length;
+        
+        this.bookmarkedIds = this.bookmarkedIds.filter(id => validIds.has(id));
+        
+        const cleanedOptions = {};
+        for (const [qId, options] of Object.entries(this.bookmarkedOptions)) {
+            if (validIds.has(qId)) {
+                cleanedOptions[qId] = options;
+            }
+        }
+        this.bookmarkedOptions = cleanedOptions;
+
+        const removedCount = originalCount - this.bookmarkedIds.length;
+
+        // DBとローカルストレージに手動保存
+        try {
+            localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
+            localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
+            
+            await setDoc(doc(db, "users", this.user.uid), {
+                bookmarks: this.bookmarkedIds,
+                bookmarkedOptions: this.bookmarkedOptions
+            }, { merge: true });
+            
+            let msg = "クラウドと同期し、ローカルの変更を反映しました！\n";
+            if (removedCount > 0) {
+                msg += `（過去の無効なゴミデータ ${removedCount} 件を削除しました）`;
+            } else {
+                msg += "（不要なゴミデータはありませんでした）";
+            }
+            alert(msg);
+            
+            this.updateBookmarkUI();
+            this.renderSidebar();
+            if (document.getElementById('bookmark-filter').checked) {
+                this.applyFilters();
+            }
+        } catch (error) {
+            console.error("同期エラー:", error);
+            alert("同期に失敗しました。通信環境を確認してください。");
         }
     },
     
