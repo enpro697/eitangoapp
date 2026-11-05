@@ -31,6 +31,8 @@
             display: flex;
             justify-content: center;
             scroll-behavior: smooth; 
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         #app {
@@ -287,7 +289,7 @@
         <div id="options-container" class="options-list"></div>
 
         <div class="bottom-nav-bar">
-            <a class="nav-link" onclick="app.switchView('editor')">← 編集ページ</a>
+            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
             <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ →</a>
         </div>
     </div>
@@ -484,13 +486,11 @@ const app = {
 
     setupGlobalClickListeners() {
         document.addEventListener('click', (e) => {
-            // 1. 表示されている画面を判定（エディタ画面なら何もしない）
             const isQuizView = !document.getElementById('quiz-view').classList.contains('hidden');
             const isReviewView = !document.getElementById('review-view').classList.contains('hidden');
             
             if (!isQuizView && !isReviewView) return;
 
-            // 2. ボタンや星マークなどの個別クリックは無視
             if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select')) return;
 
             // ==========================================
@@ -503,7 +503,6 @@ const app = {
                     const allItems = Array.from(document.querySelectorAll('#review-list-container .option-item'));
                     const currentIndex = allItems.indexOf(optionItem);
 
-                    // 次の開いている選択肢を探す
                     let targetItem = null;
                     for (let i = currentIndex + 1; i < allItems.length; i++) {
                         if (allItems[i].classList.contains('open')) {
@@ -513,10 +512,8 @@ const app = {
                     }
 
                     if (targetItem) {
-                        // 次の開いている要素へスライド
                         targetItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     } else {
-                        // 下に開いている要素がない（一番最後）場合は、一番上の開いている要素へ戻る
                         const firstOpen = allItems.find(item => item.classList.contains('open'));
                         if (firstOpen) {
                             firstOpen.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -525,7 +522,7 @@ const app = {
                         }
                     }
                 }
-                return; // 復習ページでは画面端タップ（ページ送り）は無効にするためここで終了
+                return;
             }
 
             // ==========================================
@@ -576,26 +573,27 @@ const app = {
 
                 if (e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay')) return;
 
-                // --- 画面端タップ（PCの余白クリック対応） ---
+                // --- 画面端タップ（余白 ＋ padding部分の確実な判定） ---
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
-                const appRect = appEl.getBoundingClientRect();
                 
-                if (appRect.left > 0 && clickX < appRect.left) {
-                    this.isNavSwapped ? this.nextPage() : this.prevPage();
-                    return;
-                }
-                if (screenWidth - appRect.right > 0 && clickX > appRect.right) {
-                    this.isNavSwapped ? this.prevPage() : this.nextPage();
+                // ① 白いカード(#app)の完全に外側、または緑のパディング領域（e.target === appEl）をクリックした場合
+                if (!appEl.contains(e.target) || e.target === appEl) {
+                    if (clickX < screenWidth / 2) {
+                        this.isNavSwapped ? this.nextPage() : this.prevPage();
+                    } else {
+                        this.isNavSwapped ? this.prevPage() : this.nextPage();
+                    }
                     return;
                 }
 
-                if (appRect.left <= 10 && clickX < screenWidth * 0.15) {
+                // ② スマホなどでカード内側であっても、画面端15%をタップした場合
+                if (clickX < screenWidth * 0.15) {
                     this.isNavSwapped ? this.nextPage() : this.prevPage();
                     return;
                 }
-                if (screenWidth - appRect.right <= 10 && clickX > screenWidth * 0.85) {
+                if (clickX > screenWidth * 0.85) {
                     this.isNavSwapped ? this.prevPage() : this.nextPage();
                     return;
                 }
