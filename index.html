@@ -30,7 +30,6 @@
             padding: 20px;
             display: flex;
             justify-content: center;
-            /* 画面端のタップ用にスクロール時の挙動を滑らかに */
             scroll-behavior: smooth; 
         }
 
@@ -77,17 +76,30 @@
 
         /* クイズ画面ヘッダー周り */
         .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .menu-btn { background: none; color: var(--text-main); font-size: 24px; padding: 5px; box-shadow: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        .menu-btn { background: none; color: var(--text-main); font-size: 24px; padding: 5px; box-shadow: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-left: -5px; }
         .menu-btn:hover { background-color: #eee; }
         
         .quiz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;}
         .question-number { font-weight: bold; color: var(--text-muted); font-size: 18px; margin-bottom: 5px; }
         
         /* 矢印ナビゲーション */
-        .arrow-nav-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .arrow-btn { background: none; color: var(--primary-color); font-size: 32px; font-weight: bold; padding: 0 10px; box-shadow: none; border-radius: 4px; }
+        .arrow-nav-container { 
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; 
+            transition: flex-direction 0.3s ease; 
+        }
+        .arrow-nav-container.swapped {
+            flex-direction: row-reverse; 
+        }
+        .arrow-btn { 
+            background: none; color: var(--primary-color); font-size: 32px; font-weight: bold; padding: 0 10px; box-shadow: none; border-radius: 4px; 
+            cursor: grab; 
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: pan-y; 
+        }
+        .arrow-btn:active { cursor: grabbing; background-color: var(--primary-light); }
         .arrow-btn:hover { background-color: var(--primary-light); }
-        .arrow-btn:disabled { color: #ccc; background: none; }
+        .arrow-btn:disabled { color: #ccc; background: none; cursor: not-allowed; }
 
         /* スクロール位置とタップ領域の調整 */
         .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color); scroll-margin-top: 20px; cursor: pointer; }
@@ -107,10 +119,23 @@
 
         .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; background-color: #fafafa; }
         .accordion-inner { overflow: hidden; }
-        /* アコーディオンの中身（タップ領域としてわかりやすくカーソル変更） */
         .accordion-body { padding: 0 20px 20px 20px; cursor: pointer; }
         .option-item.open .accordion-content { grid-template-rows: 1fr; }
         .option-item.open .option-button { border-bottom: 1px solid var(--border-color); }
+
+        /* 選択肢ごとのブックマークアイコン */
+        .opt-bookmark-btn {
+            cursor: pointer;
+            margin-right: 12px;
+            color: #dcdcdc;
+            font-size: 20px;
+            transition: var(--transition);
+            display: inline-block;
+            user-select: none;
+        }
+        .opt-bookmark-btn:hover { color: #f5a623; }
+        .opt-bookmark-btn.active { color: #f5a623; }
+        .word-text-wrapper { display: flex; align-items: center; }
 
         .result-mark { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
         .mark-o { color: var(--correct-color); }
@@ -118,7 +143,7 @@
         .meaning-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
         .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
 
-        /* ブックマークボタン */
+        /* 設問全体のブックマークボタン */
         #bookmark-btn {
             background-color: #fff;
             color: #ccc;
@@ -128,7 +153,28 @@
         #bookmark-btn:hover { background-color: #f9f9f9; }
         #bookmark-btn.active { color: #f5a623; border-color: #f5a623; background-color: #fffdf5; }
 
-        /* サイドバー（ドロワーメニュー） */
+        /* フッターナビゲーション */
+        .bottom-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ページネーション（復習ページ用） */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        /* サイドバー */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
         
@@ -164,7 +210,6 @@
         <button class="close-sidebar-btn" onclick="app.toggleSidebar(false)">×</button>
     </div>
     
-    <!-- フィルタエリア -->
     <div class="sidebar-filters">
         <select id="difficulty-filter" onchange="app.applyFilters()">
             <option value="all">すべての難易度</option>
@@ -183,6 +228,7 @@
 </div>
 
 <div id="app">
+    <!-- 読み込みデータ編集画面 -->
     <div id="editor-view" class="view">
         <div class="top-nav-bar" style="justify-content: flex-end;">
             <a class="nav-link" onclick="app.switchView('quiz')">設問ページへ遷移するリンク →</a>
@@ -190,7 +236,6 @@
         <h2>読み込みデータ編集</h2>
         
         <div class="editor-container">
-            <!-- Firebaseログインエリア -->
             <div style="margin: 10px 0; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);">
                 <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
                 <p id="login-desc" style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
@@ -214,12 +259,12 @@
         </div>
     </div>
 
+    <!-- クイズ画面 -->
     <div id="quiz-view" class="view hidden">
         <div class="top-nav-bar">
             <button class="menu-btn" onclick="app.toggleSidebar(true)">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
         </div>
         
         <div class="quiz-header">
@@ -232,15 +277,51 @@
             </div>
         </div>
 
-        <div class="arrow-nav-container">
-            <button class="arrow-btn" id="btn-prev" onclick="app.prevPage()">＜</button>
-            <button class="arrow-btn" id="btn-next" onclick="app.nextPage()">＞</button>
+        <div class="arrow-nav-container" id="arrow-nav-container">
+            <button class="arrow-btn" id="btn-prev" draggable="true" onclick="app.handleNavClick('prev')">＜</button>
+            <button class="arrow-btn" id="btn-next" draggable="true" onclick="app.handleNavClick('next')">＞</button>
         </div>
 
         <div id="question-text" class="question-text"></div>
         <div id="question-translation" class="question-translation hidden"></div>
         <div id="options-container" class="options-list"></div>
+
+        <div class="bottom-nav-bar">
+            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
+            <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ →</a>
+        </div>
     </div>
+
+    <!-- 復習ページ画面 -->
+    <div id="review-view" class="view hidden">
+        <div class="top-nav-bar">
+            <a class="nav-link" onclick="app.switchView('quiz')">← 設問ページに戻る</a>
+        </div>
+        
+        <div class="quiz-header" style="align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 15px; margin-bottom: 20px;">
+            <div>
+                <h2 style="border: none; padding: 0; margin: 0; font-size: 22px;">復習ページ</h2>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">ブックマークした選択肢一覧</div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <select id="review-per-page" onchange="app.changeReviewPerPage()" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit;">
+                    <option value="10">10件表示</option>
+                    <option value="20">20件表示</option>
+                    <option value="50">50件表示</option>
+                </select>
+                <button id="review-toggle-accordion-btn" onclick="app.toggleReviewAccordions()">アコーディオンを全開閉</button>
+            </div>
+        </div>
+        
+        <div id="review-list-container" class="options-list"></div>
+        
+        <div class="pagination-container" id="review-pagination">
+            <button id="review-btn-prev" class="btn-secondary" onclick="app.prevReviewPage()">＜ 前へ</button>
+            <span id="review-page-info" style="font-weight: bold; color: var(--text-muted);">1 / 1</span>
+            <button id="review-btn-next" class="btn-secondary" onclick="app.nextReviewPage()">次へ ＞</button>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
@@ -262,25 +343,35 @@ const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
 const app = {
-    allData: [],      // 元の全データ
-    data: [],         // フィルタ適用後の表示データ
-    bookmarkedIds: [], // 保存されたブックマークのID配列
+    allData: [],      
+    data: [],         
+    bookmarkedIds: [], 
+    bookmarkedOptions: {}, 
     savedJsonString: "[]",
     currentIndex: 0,
     isAllAccordionsOpen: false,
-    user: null,       // Firebaseユーザー情報
+    user: null,
+    
+    isNavSwapped: false,
+    lastSwapTime: 0,
+    longPressTimer: null,
+
+    reviewData: [],
+    reviewCurrentPage: 0,
+    reviewPerPage: 10,
+    isReviewAccordionsOpen: false,
     
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
     init() {
         this.allData = [];
         this.data = [];
+        this.bookmarkedOptions = {};
 
         const jsonInput = document.getElementById('json-input');
         jsonInput.value = this.savedJsonString;
         jsonInput.addEventListener('input', () => this.validateJsonInput());
         
-        // 認証状態の監視 (ログイン状況が変わるたびにブックマークを同期し、UIを更新)
         onAuthStateChanged(auth, (user) => {
             const loginBtn = document.getElementById('login-btn');
             const loginDesc = document.getElementById('login-desc');
@@ -289,16 +380,16 @@ const app = {
                 this.user = user;
                 if (loginBtn) {
                     loginBtn.innerText = "ログアウト";
-                    loginBtn.style.backgroundColor = "#757575"; // ログアウト用の落ち着いた色
+                    loginBtn.style.backgroundColor = "#757575"; 
                 }
                 if (loginDesc) {
-                    loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${user.displayName || 'ユーザー'} としてログイン中です。ブックマークは自動保存されます。`;
+                    loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${user.displayName || 'ユーザー'} としてログイン中です。`;
                 }
             } else {
                 this.user = null;
                 if (loginBtn) {
                     loginBtn.innerText = "Googleでログイン";
-                    loginBtn.style.backgroundColor = "#db4437"; // 元のGoogleレッド
+                    loginBtn.style.backgroundColor = "#db4437"; 
                 }
                 if (loginDesc) {
                     loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークが同期されます。";
@@ -307,135 +398,253 @@ const app = {
             this.loadBookmarks();
         });
         
+        const savedSwap = localStorage.getItem('vocab_nav_swapped');
+        if (savedSwap === 'true') {
+            this.isNavSwapped = true;
+            document.getElementById('arrow-nav-container').classList.add('swapped');
+        }
+
+        this.setupDragAndLongPress();
         this.fetchRemoteData(false);
         this.setupGlobalClickListeners();
     },
 
-    // Firebase ログイン・ログアウト処理
+    toggleNavSwap() {
+        this.isNavSwapped = !this.isNavSwapped;
+        this.lastSwapTime = Date.now();
+        localStorage.setItem('vocab_nav_swapped', this.isNavSwapped);
+        
+        const container = document.getElementById('arrow-nav-container');
+        if (this.isNavSwapped) {
+            container.classList.add('swapped');
+        } else {
+            container.classList.remove('swapped');
+        }
+        if (navigator.vibrate) navigator.vibrate(50);
+    },
+
+    setupDragAndLongPress() {
+        const prevBtn = document.getElementById('btn-prev');
+        const nextBtn = document.getElementById('btn-next');
+        const btns = [prevBtn, nextBtn];
+
+        btns.forEach(btn => {
+            btn.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+                e.target.style.opacity = '0.5';
+            });
+            btn.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+            btn.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+            });
+            btn.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain');
+                const targetBtn = e.target.closest('.arrow-btn');
+                if (targetBtn && draggedId && draggedId !== targetBtn.id) {
+                    this.toggleNavSwap();
+                }
+            });
+        });
+
+        btns.forEach(btn => {
+            btn.addEventListener('touchstart', (e) => {
+                this.longPressTimer = setTimeout(() => {
+                    this.toggleNavSwap();
+                    this.longPressTimer = null;
+                }, 600); 
+            }, { passive: true });
+
+            const cancelLongPress = () => {
+                if (this.longPressTimer) {
+                    clearTimeout(this.longPressTimer);
+                    this.longPressTimer = null;
+                }
+            };
+
+            btn.addEventListener('touchend', cancelLongPress);
+            btn.addEventListener('touchmove', cancelLongPress, { passive: true });
+            btn.addEventListener('touchcancel', cancelLongPress);
+            btn.addEventListener('contextmenu', (e) => e.preventDefault()); 
+        });
+    },
+
     async toggleLogin() {
         if (this.user) {
             await signOut(auth);
             alert("ログアウトしました。これ以降の変更はローカルにのみ保存されます。");
         } else {
             const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-            } catch(error) {
-                console.error("ログインエラー", error);
-            }
+            try { await signInWithPopup(auth, provider); } 
+            catch(error) { console.error("ログインエラー", error); }
         }
     },
 
     setupGlobalClickListeners() {
         document.addEventListener('click', (e) => {
-            if (!document.getElementById('editor-view').classList.contains('hidden')) return;
+            // 1. 表示されている画面を判定（エディタ画面なら何もしない）
+            const isQuizView = !document.getElementById('quiz-view').classList.contains('hidden');
+            const isReviewView = !document.getElementById('review-view').classList.contains('hidden');
+            
+            if (!isQuizView && !isReviewView) return;
 
-            // 1. 設問の英語クリック
-            if (e.target.closest('#question-text')) {
-                this.toggleAllAccordions();
-                return;
-            }
+            // 2. ボタンや星マークなどの個別クリックは無視
+            if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select')) return;
 
-            // 2. 設問の日本語クリック
-            if (e.target.closest('#question-translation')) {
-                const options = Array.from(document.querySelectorAll('.option-item'));
-                const correctIndex = options.findIndex(opt => opt.classList.contains('answered-correct'));
-                
-                if (correctIndex !== -1) {
-                    let targetIndex = correctIndex + 1;
-                    if (targetIndex >= options.length) {
-                        targetIndex = 0;
-                    }
-                    const targetEl = document.getElementById(`option-item-${targetIndex}`);
-                    if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                return;
-            }
+            // ==========================================
+            // 復習ページでのクリック挙動
+            // ==========================================
+            if (isReviewView) {
+                const accordionBody = e.target.closest('.accordion-body');
+                if (accordionBody) {
+                    const optionItem = accordionBody.closest('.option-item');
+                    const allItems = Array.from(document.querySelectorAll('#review-list-container .option-item'));
+                    const currentIndex = allItems.indexOf(optionItem);
 
-            // 3. アコーディオン内クリック
-            const accordionBody = e.target.closest('.accordion-body');
-            if (accordionBody) {
-                const optionItem = accordionBody.closest('.option-item');
-                const options = Array.from(document.querySelectorAll('.option-item'));
-                const currentIndex = options.indexOf(optionItem);
-
-                if (optionItem.classList.contains('answered-correct')) {
-                    document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    let targetIndex = currentIndex + 1;
-                    if (targetIndex >= options.length) {
-                        const transEl = document.getElementById('question-translation');
-                        if (!transEl.classList.contains('hidden')) {
-                            transEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        } else {
-                            document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // 次の開いている選択肢を探す
+                    let targetItem = null;
+                    for (let i = currentIndex + 1; i < allItems.length; i++) {
+                        if (allItems[i].classList.contains('open')) {
+                            targetItem = allItems[i];
+                            break;
                         }
+                    }
+
+                    if (targetItem) {
+                        // 次の開いている要素へスライド
+                        targetItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     } else {
+                        // 下に開いている要素がない（一番最後）場合は、一番上の開いている要素へ戻る
+                        const firstOpen = allItems.find(item => item.classList.contains('open'));
+                        if (firstOpen) {
+                            firstOpen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } else {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    }
+                }
+                return; // 復習ページでは画面端タップ（ページ送り）は無効にするためここで終了
+            }
+
+            // ==========================================
+            // クイズページでのクリック挙動
+            // ==========================================
+            if (isQuizView) {
+                if (e.target.closest('#question-text')) {
+                    this.toggleAllAccordions();
+                    return;
+                }
+
+                if (e.target.closest('#question-translation')) {
+                    const options = Array.from(document.querySelectorAll('#options-container .option-item'));
+                    const correctIndex = options.findIndex(opt => opt.classList.contains('answered-correct'));
+                    if (correctIndex !== -1) {
+                        let targetIndex = correctIndex + 1;
+                        if (targetIndex >= options.length) targetIndex = 0;
                         const targetEl = document.getElementById(`option-item-${targetIndex}`);
                         if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
+                    return;
                 }
-                return;
-            }
 
-            // 4. 画面端タップ
-            const ignoreSelectors = ['button', 'a', '.option-item', '.sidebar', '.sidebar-overlay', 'select'];
-            if (ignoreSelectors.some(selector => e.target.closest(selector))) {
-                return;
-            }
+                const accordionBody = e.target.closest('.accordion-body');
+                if (accordionBody) {
+                    const optionItem = accordionBody.closest('.option-item');
+                    const options = Array.from(document.querySelectorAll('#options-container .option-item'));
+                    const currentIndex = options.indexOf(optionItem);
 
-            const clickX = e.clientX;
-            const screenWidth = window.innerWidth;
-            
-            if (clickX < screenWidth * 0.15) {
-                this.prevPage();
-            } else if (clickX > screenWidth * 0.85) {
-                this.nextPage();
+                    if (optionItem.classList.contains('answered-correct')) {
+                        document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        let targetIndex = currentIndex + 1;
+                        if (targetIndex >= options.length) {
+                            const transEl = document.getElementById('question-translation');
+                            if (!transEl.classList.contains('hidden')) {
+                                transEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            } else {
+                                document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        } else {
+                            const targetEl = document.getElementById(`option-item-${targetIndex}`);
+                            if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                    return;
+                }
+
+                if (e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay')) return;
+
+                // --- 画面端タップ（PCの余白クリック対応） ---
+                const clickX = e.clientX;
+                const screenWidth = window.innerWidth;
+                const appEl = document.getElementById('app');
+                const appRect = appEl.getBoundingClientRect();
+                
+                if (appRect.left > 0 && clickX < appRect.left) {
+                    this.isNavSwapped ? this.nextPage() : this.prevPage();
+                    return;
+                }
+                if (screenWidth - appRect.right > 0 && clickX > appRect.right) {
+                    this.isNavSwapped ? this.prevPage() : this.nextPage();
+                    return;
+                }
+
+                if (appRect.left <= 10 && clickX < screenWidth * 0.15) {
+                    this.isNavSwapped ? this.nextPage() : this.prevPage();
+                    return;
+                }
+                if (screenWidth - appRect.right <= 10 && clickX > screenWidth * 0.85) {
+                    this.isNavSwapped ? this.prevPage() : this.nextPage();
+                    return;
+                }
             }
         });
     },
 
     async loadBookmarks() {
         if (this.user) {
-            // クラウド（Firebase）から取得
             try {
                 const docRef = doc(db, "users", this.user.uid);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    this.bookmarkedIds = docSnap.data().bookmarks || [];
-                    localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds)); // ローカルも同期
+                    const dbData = docSnap.data();
+                    this.bookmarkedIds = dbData.bookmarks || [];
+                    this.bookmarkedOptions = dbData.bookmarkedOptions || {};
+                    localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds)); 
+                    localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
                 }
-            } catch(e) {
-                console.error("取得エラー", e);
-            }
+            } catch(e) { console.error("取得エラー", e); }
         } else {
-            // ログアウト時：ローカルストレージから取得
             try {
-                const saved = localStorage.getItem('vocab_bookmarks');
-                this.bookmarkedIds = saved ? JSON.parse(saved) : [];
+                const savedIds = localStorage.getItem('vocab_bookmarks');
+                this.bookmarkedIds = savedIds ? JSON.parse(savedIds) : [];
+                const savedOpts = localStorage.getItem('vocab_bookmarked_options');
+                this.bookmarkedOptions = savedOpts ? JSON.parse(savedOpts) : {};
             } catch (e) {
                 this.bookmarkedIds = [];
+                this.bookmarkedOptions = {};
             }
         }
 
         this.updateBookmarkUI();
         this.renderSidebar();
 
-        // フィルターONの時は表示データを更新
         if (document.getElementById('bookmark-filter').checked) {
             this.applyFilters();
         }
     },
 
     async saveBookmarks() {
-        // 常にローカルには保存
         localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
+        localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
         
-        // ログインしていればクラウドにも保存
         if (this.user) {
             try {
                 await setDoc(doc(db, "users", this.user.uid), {
-                    bookmarks: this.bookmarkedIds
+                    bookmarks: this.bookmarkedIds,
+                    bookmarkedOptions: this.bookmarkedOptions
                 }, { merge: true });
             } catch(e) {
                 console.error("クラウド保存エラー", e);
@@ -449,17 +658,68 @@ const app = {
         
         const qId = String(q.id);
         const idx = this.bookmarkedIds.indexOf(qId);
+        
         if (idx > -1) {
             this.bookmarkedIds.splice(idx, 1);
+            delete this.bookmarkedOptions[qId];
+            
+            const stars = document.querySelectorAll('.opt-bookmark-btn');
+            stars.forEach(s => {
+                s.innerText = '☆';
+                s.classList.remove('active');
+            });
         } else {
             this.bookmarkedIds.push(qId);
         }
         
         this.saveBookmarks();
         this.updateBookmarkUI();
+        this.renderSidebar();
         
-        // ブックマークフィルターがONの状態で外した場合は即座にフィルタを再適用
         if (document.getElementById('bookmark-filter').checked && idx > -1) {
+            this.applyFilters();
+        }
+    },
+
+    toggleOptionBookmark(event, qId, wordStr, index) {
+        event.stopPropagation();
+        
+        if (!this.bookmarkedOptions[qId]) {
+            this.bookmarkedOptions[qId] = [];
+        }
+        
+        const idx = this.bookmarkedOptions[qId].indexOf(wordStr);
+        const starEl = document.getElementById(`opt-star-${index}`);
+        
+        if (idx > -1) {
+            this.bookmarkedOptions[qId].splice(idx, 1);
+            if (starEl) {
+                starEl.innerText = '☆';
+                starEl.classList.remove('active');
+            }
+            
+            if (this.bookmarkedOptions[qId].length === 0) {
+                delete this.bookmarkedOptions[qId];
+                const qIdx = this.bookmarkedIds.indexOf(qId);
+                if (qIdx > -1) this.bookmarkedIds.splice(qIdx, 1);
+            }
+        } else {
+            this.bookmarkedOptions[qId].push(wordStr);
+            if (starEl) {
+                starEl.innerText = '★';
+                starEl.classList.add('active');
+            }
+            
+            if (!this.bookmarkedIds.includes(qId)) {
+                this.bookmarkedIds.push(qId);
+            }
+        }
+        
+        this.saveBookmarks();
+        this.updateBookmarkUI();
+        this.renderSidebar();
+        
+        if (document.getElementById('bookmark-filter').checked && !this.bookmarkedIds.includes(qId)) {
             this.applyFilters();
         }
     },
@@ -475,10 +735,10 @@ const app = {
 
         if (this.bookmarkedIds.includes(String(q.id))) {
             btn.classList.add('active');
-            btn.innerText = '★ ブックマーク済み';
+            btn.innerText = '★ 設問ブックマーク済';
         } else {
             btn.classList.remove('active');
-            btn.innerText = '☆ ブックマーク追加';
+            btn.innerText = '☆ 設問をブックマーク';
         }
     },
     
@@ -570,7 +830,6 @@ const app = {
             parsedData = this.normalizeAndReassignIds(parsedData);
 
             this.allData = parsedData; 
-            
             this.savedJsonString = JSON.stringify(this.allData, null, 2);
             document.getElementById('json-input').value = this.savedJsonString; 
             document.getElementById('import-btn').disabled = true;
@@ -629,9 +888,14 @@ const app = {
     switchView(viewName) {
         document.getElementById('editor-view').classList.add('hidden');
         document.getElementById('quiz-view').classList.add('hidden');
+        document.getElementById('review-view').classList.add('hidden');
         document.getElementById(`${viewName}-view`).classList.remove('hidden');
-        if(viewName === 'quiz' && this.data.length > 0) {
+        
+        if (viewName === 'quiz' && this.data.length > 0) {
             this.renderQuiz();
+        } else if (viewName === 'review') {
+            this.buildReviewData();
+            this.renderReview();
         }
     },
 
@@ -672,10 +936,19 @@ const app = {
             let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
             let isCorrect = opt.is_correct === true || q.answer === wordStr || q.answer_index === index;
             let exampleStr = opt.example || q.example || q.sentence || q.punchline || "";
+            
+            let isOptionBookmarked = this.bookmarkedOptions[q.id] && this.bookmarkedOptions[q.id].includes(wordStr);
+            let escapedWordStr = wordStr.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
             itemDiv.innerHTML = `
                 <button class="option-button" onclick="app.handleOptionClick(${index}, ${isCorrect})">
-                    <span class="word-text">${index + 1}. ${wordStr}</span>
+                    <span class="word-text-wrapper">
+                        <span id="opt-star-${index}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
+                              onclick="app.toggleOptionBookmark(event, '${q.id}', '${escapedWordStr}', ${index})">
+                            ${isOptionBookmarked ? '★' : '☆'}
+                        </span>
+                        <span>${index + 1}. ${wordStr}</span>
+                    </span>
                     <span class="icon-toggle">▼</span>
                 </button>
                 <div class="accordion-content">
@@ -699,6 +972,12 @@ const app = {
         window.scrollTo({ top: 0, behavior: 'auto' }); 
     },
 
+    handleNavClick(direction) {
+        if (Date.now() - (this.lastSwapTime || 0) < 300) return;
+        if (direction === 'prev') this.prevPage();
+        else if (direction === 'next') this.nextPage();
+    },
+
    handleOptionClick(index, isCorrect) {
         const item = document.getElementById(`option-item-${index}`);
         if (item.classList.contains('open')) {
@@ -707,7 +986,6 @@ const app = {
             item.classList.add('open');
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
             
-            // 正解を開いた場合、アニメーションに合わせてスクロール
             if (isCorrect) {
                 setTimeout(() => {
                     item.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -719,7 +997,7 @@ const app = {
 
   toggleAllAccordions() {
         this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
-        const items = document.querySelectorAll('.option-item');
+        const items = document.querySelectorAll('#quiz-view .option-item');
         let correctItem = null;
 
         items.forEach((item) => {
@@ -727,14 +1005,13 @@ const app = {
             if (this.isAllAccordionsOpen) {
                 item.classList.add('open');
                 item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
-                if (isCorrect) correctItem = item; // 正解の要素を記憶
+                if (isCorrect) correctItem = item; 
             } else {
                 item.classList.remove('open');
             }
         });
         this.checkTranslationVisibility();
 
-        // 全開閉ボタンで開いた時、正解の要素へ自動スクロール
         if (this.isAllAccordionsOpen && correctItem) {
             setTimeout(() => {
                 correctItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -743,7 +1020,7 @@ const app = {
     },
 
     checkTranslationVisibility() {
-        const openItemsCount = document.querySelectorAll('.option-item.open').length;
+        const openItemsCount = document.querySelectorAll('#quiz-view .option-item.open').length;
         const transDiv = document.getElementById('question-translation');
         if (openItemsCount > 0 && transDiv.innerText.trim() !== "") {
             transDiv.classList.remove('hidden');
@@ -844,6 +1121,179 @@ const app = {
             if (parentDetails) parentDetails.open = true;
             activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+    },
+
+    /* =========================================================
+       復習ページ（Review）用のロジック
+       ========================================================= */
+    
+    buildReviewData() {
+        this.reviewData = [];
+        for (const q of this.allData) {
+            const bOpts = this.bookmarkedOptions[q.id];
+            if (bOpts && bOpts.length > 0) {
+                const options = q.options || q.choices || [];
+                for (const opt of options) {
+                    let wordStr = opt.word || opt;
+                    if (bOpts.includes(wordStr)) {
+                        let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
+                        let exampleStr = opt.example || q.example || q.sentence || q.punchline || "";
+                        
+                        this.reviewData.push({
+                            qId: String(q.id),
+                            wordStr: wordStr,
+                            meaningStr: meaningStr,
+                            exampleStr: exampleStr
+                        });
+                    }
+                }
+            }
+        }
+        this.reviewCurrentPage = 0;
+    },
+
+    renderReview() {
+        const container = document.getElementById('review-list-container');
+        container.innerHTML = '';
+        
+        const pagination = document.getElementById('review-pagination');
+        if (this.reviewData.length === 0) {
+            container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); background: #f9f9f9; border-radius: 8px;">ブックマークされた選択肢はありません。</div>';
+            pagination.style.display = 'none';
+            return;
+        }
+        
+        pagination.style.display = 'flex';
+        this.isReviewAccordionsOpen = false;
+        
+        const startIdx = this.reviewCurrentPage * this.reviewPerPage;
+        const endIdx = Math.min(startIdx + this.reviewPerPage, this.reviewData.length);
+        
+        for (let i = startIdx; i < endIdx; i++) {
+            const item = this.reviewData[i];
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'option-item';
+            itemDiv.id = `review-item-${i}`;
+            
+            let escapedWordStr = item.wordStr.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            
+            let isOptionBookmarked = this.bookmarkedOptions[item.qId] && this.bookmarkedOptions[item.qId].includes(item.wordStr);
+            
+            itemDiv.innerHTML = `
+                <button class="option-button" onclick="app.handleReviewOptionClick(${i})">
+                    <span class="word-text-wrapper">
+                        <span id="review-star-${i}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
+                              onclick="app.toggleReviewBookmark(event, '${item.qId}', '${escapedWordStr}', ${i})">
+                            ${isOptionBookmarked ? '★' : '☆'}
+                        </span>
+                        <span>${item.wordStr}</span>
+                    </span>
+                    <span class="icon-toggle">▼</span>
+                </button>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <div class="accordion-body" style="padding-top: 10px;">
+                            ${item.meaningStr ? `<div class="meaning-text" style="color: var(--primary-color);">意味: ${item.meaningStr}</div>` : ''}
+                            ${item.exampleStr ? `<div class="example-text">"${item.exampleStr}"</div>` : ''}
+                            ${!item.meaningStr && !item.exampleStr ? '<div class="example-text">詳細データがありません</div>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+        }
+        
+        this.updateReviewPagination();
+        window.scrollTo({ top: 0, behavior: 'auto' });
+    },
+
+    handleReviewOptionClick(index) {
+        const item = document.getElementById(`review-item-${index}`);
+        if (item.classList.contains('open')) {
+            item.classList.remove('open');
+        } else {
+            item.classList.add('open');
+        }
+    },
+
+    toggleReviewAccordions() {
+        this.isReviewAccordionsOpen = !this.isReviewAccordionsOpen;
+        const items = document.querySelectorAll('#review-view .option-item');
+        items.forEach((item) => {
+            if (this.isReviewAccordionsOpen) {
+                item.classList.add('open');
+            } else {
+                item.classList.remove('open');
+            }
+        });
+    },
+
+    toggleReviewBookmark(event, qId, wordStr, index) {
+        event.stopPropagation();
+        
+        const starEl = document.getElementById(`review-star-${index}`);
+        const isCurrentlyBookmarked = starEl.classList.contains('active');
+        
+        if (isCurrentlyBookmarked) {
+            if (this.bookmarkedOptions[qId]) {
+                const idx = this.bookmarkedOptions[qId].indexOf(wordStr);
+                if (idx > -1) {
+                    this.bookmarkedOptions[qId].splice(idx, 1);
+                }
+                if (this.bookmarkedOptions[qId].length === 0) {
+                    delete this.bookmarkedOptions[qId];
+                    const qIdx = this.bookmarkedIds.indexOf(qId);
+                    if (qIdx > -1) this.bookmarkedIds.splice(qIdx, 1);
+                }
+            }
+            starEl.innerText = '☆';
+            starEl.classList.remove('active');
+        } else {
+            if (!this.bookmarkedOptions[qId]) {
+                this.bookmarkedOptions[qId] = [];
+            }
+            if (!this.bookmarkedOptions[qId].includes(wordStr)) {
+                this.bookmarkedOptions[qId].push(wordStr);
+            }
+            if (!this.bookmarkedIds.includes(qId)) {
+                this.bookmarkedIds.push(qId);
+            }
+            starEl.innerText = '★';
+            starEl.classList.add('active');
+        }
+        
+        this.saveBookmarks();
+        this.updateBookmarkUI();
+        this.renderSidebar();
+    },
+
+    changeReviewPerPage() {
+        this.reviewPerPage = parseInt(document.getElementById('review-per-page').value, 10);
+        this.reviewCurrentPage = 0; 
+        this.renderReview();
+    },
+
+    prevReviewPage() {
+        if (this.reviewCurrentPage > 0) {
+            this.reviewCurrentPage--;
+            this.renderReview();
+        }
+    },
+
+    nextReviewPage() {
+        const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage);
+        if (this.reviewCurrentPage < totalPages - 1) {
+            this.reviewCurrentPage++;
+            this.renderReview();
+        }
+    },
+
+    updateReviewPagination() {
+        const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
+        document.getElementById('review-page-info').innerText = `${this.reviewCurrentPage + 1} / ${totalPages}`;
+        
+        document.getElementById('review-btn-prev').disabled = (this.reviewCurrentPage === 0);
+        document.getElementById('review-btn-next').disabled = (this.reviewCurrentPage === totalPages - 1);
     }
 };
 
