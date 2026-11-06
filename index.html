@@ -243,14 +243,13 @@
                 <p id="login-desc" style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
-                    <!-- 新規：手動同期＆クリーンアップボタン -->
+                    <!-- 手動同期＆クリーンアップボタン -->
                     <button id="sync-btn" onclick="app.syncAndCleanBookmarks()" style="background-color: #4CAF50; display: none;">クラウド同期＆データ整理</button>
                 </div>
             </div>
 
             <div class="editor-toolbar">
                 <button class="btn-secondary" onclick="app.clearText()">全削除</button>
-                <!-- 新規：全コピーボタン -->
                 <button class="btn-secondary" onclick="app.copyText()">全コピー</button>
                 <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
                 <button style="background-color: #ff9800; color: white; border: none;" onclick="app.fetchRemoteData(true)">クラウドから最新データを取得</button>
@@ -295,8 +294,8 @@
         <div id="options-container" class="options-list"></div>
 
         <div class="bottom-nav-bar">
-            <a class="nav-link" onclick="app.switchView('editor')">編集ページ</a>
-            <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ</a>
+            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
+            <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ →</a>
         </div>
     </div>
 
@@ -382,7 +381,6 @@ const app = {
         
         onAuthStateChanged(auth, (user) => {
             const loginBtn = document.getElementById('login-btn');
-            const loginDesc = document.getElementById('login-desc');
             const syncBtn = document.getElementById('sync-btn');
             
             if (user) {
@@ -391,28 +389,30 @@ const app = {
                     loginBtn.innerText = "ログアウト";
                     loginBtn.style.backgroundColor = "#757575"; 
                 }
-                if (syncBtn) {
-                    syncBtn.style.display = "block";
-                }
-                if (loginDesc) {
-                    loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${user.displayName || 'ユーザー'} としてログイン中です。`;
-                }
+                if (syncBtn) syncBtn.style.display = "block";
             } else {
                 this.user = null;
                 if (loginBtn) {
                     loginBtn.innerText = "Googleでログイン";
                     loginBtn.style.backgroundColor = "#db4437"; 
                 }
-                if (syncBtn) {
-                    syncBtn.style.display = "none";
-                }
-                if (loginDesc) {
-                    loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークが同期されます。";
-                }
+                if (syncBtn) syncBtn.style.display = "none";
+                
+                const loginDesc = document.getElementById('login-desc');
+                if (loginDesc) loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークが同期されます。";
             }
             this.loadBookmarks();
         });
         
+        // オンライン復帰時の表示フィードバック
+        window.addEventListener('online', () => {
+            const isUnsynced = localStorage.getItem('vocab_unsynced') === 'true';
+            if (isUnsynced && this.user) {
+                const loginDesc = document.getElementById('login-desc');
+                if (loginDesc) loginDesc.innerHTML = `<span style="color: #ff9800; font-weight: bold;">⚠ オンライン復帰：</span> 未同期のデータがあります。「クラウド同期」ボタンを押してください。`;
+            }
+        });
+
         const savedSwap = localStorage.getItem('vocab_nav_swapped');
         if (savedSwap === 'true') {
             this.isNavSwapped = true;
@@ -503,12 +503,9 @@ const app = {
             const isReviewView = !document.getElementById('review-view').classList.contains('hidden');
             
             if (!isQuizView && !isReviewView) return;
-
             if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select')) return;
 
-            // ==========================================
-            // 復習ページでのクリック挙動
-            // ==========================================
+            // 復習ページの挙動
             if (isReviewView) {
                 const accordionBody = e.target.closest('.accordion-body');
                 if (accordionBody) {
@@ -523,7 +520,6 @@ const app = {
                             break;
                         }
                     }
-
                     if (targetItem) {
                         targetItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     } else {
@@ -538,15 +534,12 @@ const app = {
                 return;
             }
 
-            // ==========================================
-            // クイズページでのクリック挙動
-            // ==========================================
+            // クイズページの挙動
             if (isQuizView) {
                 if (e.target.closest('#question-text')) {
                     this.toggleAllAccordions();
                     return;
                 }
-
                 if (e.target.closest('#question-translation')) {
                     const options = Array.from(document.querySelectorAll('#options-container .option-item'));
                     const correctIndex = options.findIndex(opt => opt.classList.contains('answered-correct'));
@@ -558,7 +551,6 @@ const app = {
                     }
                     return;
                 }
-
                 const accordionBody = e.target.closest('.accordion-body');
                 if (accordionBody) {
                     const optionItem = accordionBody.closest('.option-item');
@@ -583,10 +575,9 @@ const app = {
                     }
                     return;
                 }
-
                 if (e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay')) return;
 
-                // --- 画面端タップ（余白 ＋ padding部分の確実な判定） ---
+                // --- 画面端タップ（座標ベース判定） ---
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
@@ -613,28 +604,40 @@ const app = {
     },
 
     async loadBookmarks() {
+        const isUnsynced = localStorage.getItem('vocab_unsynced') === 'true';
+
         if (this.user) {
-            try {
-                const docRef = doc(db, "users", this.user.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const dbData = docSnap.data();
-                    this.bookmarkedIds = dbData.bookmarks || [];
-                    this.bookmarkedOptions = dbData.bookmarkedOptions || {};
-                    localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds)); 
-                    localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
+            if (isUnsynced) {
+                // オフライン状態からの復帰時：クラウドで上書きせずローカルを保護
+                console.log("未同期データあり: クラウド取得をスキップします");
+                this.loadFromLocalStorage();
+                
+                const loginDesc = document.getElementById('login-desc');
+                if (loginDesc) {
+                    loginDesc.innerHTML = `<span style="color: #ff9800; font-weight: bold;">⚠ 未同期の変更あり：</span> オフライン時の変更が残っています。「クラウド同期」ボタンを押して保存してください。`;
                 }
-            } catch(e) { console.error("取得エラー", e); }
-        } else {
-            try {
-                const savedIds = localStorage.getItem('vocab_bookmarks');
-                this.bookmarkedIds = savedIds ? JSON.parse(savedIds) : [];
-                const savedOpts = localStorage.getItem('vocab_bookmarked_options');
-                this.bookmarkedOptions = savedOpts ? JSON.parse(savedOpts) : {};
-            } catch (e) {
-                this.bookmarkedIds = [];
-                this.bookmarkedOptions = {};
+            } else {
+                try {
+                    const docRef = doc(db, "users", this.user.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const dbData = docSnap.data();
+                        this.bookmarkedIds = dbData.bookmarks || [];
+                        this.bookmarkedOptions = dbData.bookmarkedOptions || {};
+                        localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds)); 
+                        localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
+                    }
+                    const loginDesc = document.getElementById('login-desc');
+                    if (loginDesc) {
+                        loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
+                    }
+                } catch(e) { 
+                    console.error("取得エラー", e); 
+                    this.loadFromLocalStorage();
+                }
             }
+        } else {
+            this.loadFromLocalStorage();
         }
 
         this.updateBookmarkUI();
@@ -645,19 +648,127 @@ const app = {
         }
     },
 
+    loadFromLocalStorage() {
+        try {
+            const savedIds = localStorage.getItem('vocab_bookmarks');
+            this.bookmarkedIds = savedIds ? JSON.parse(savedIds) : [];
+            const savedOpts = localStorage.getItem('vocab_bookmarked_options');
+            this.bookmarkedOptions = savedOpts ? JSON.parse(savedOpts) : {};
+        } catch (e) {
+            this.bookmarkedIds = [];
+            this.bookmarkedOptions = {};
+        }
+    },
+
     async saveBookmarks() {
         localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
         localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
         
         if (this.user) {
+            localStorage.setItem('vocab_unsynced', 'true');
+            
+            if (!navigator.onLine) {
+                const loginDesc = document.getElementById('login-desc');
+                if (loginDesc) {
+                    loginDesc.innerHTML = `<span style="color: #ff9800; font-weight: bold;">⚠ オフライン：</span> 変更はローカルに保存されました。後で同期してください。`;
+                }
+                return;
+            }
+
             try {
                 await setDoc(doc(db, "users", this.user.uid), {
                     bookmarks: this.bookmarkedIds,
                     bookmarkedOptions: this.bookmarkedOptions
                 }, { merge: true });
+                
+                localStorage.removeItem('vocab_unsynced');
+                
+                const loginDesc = document.getElementById('login-desc');
+                if (loginDesc) {
+                    loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
+                }
             } catch(e) {
                 console.error("クラウド保存エラー", e);
+                const loginDesc = document.getElementById('login-desc');
+                if (loginDesc) {
+                    loginDesc.innerHTML = `<span style="color: #ff9800; font-weight: bold;">⚠ 同期エラー：</span> 変更はローカルに保存されました。後で同期してください。`;
+                }
             }
+        }
+    },
+
+    async syncAndCleanBookmarks() {
+        if (!this.user) {
+            alert("ログインしていません。");
+            return;
+        }
+        if (!navigator.onLine) {
+            alert("現在オフラインのため同期できません。通信環境の良いところで再度お試しください。");
+            return;
+        }
+        if (!this.allData || this.allData.length === 0) {
+            alert("単語データが読み込まれていません。先に「クラウドから最新データを取得」するか、データを取り込んでください。");
+            return;
+        }
+
+        const validIds = new Set(this.allData.map(q => String(q.id)));
+        const originalCount = this.bookmarkedIds.length;
+        
+        this.bookmarkedIds = this.bookmarkedIds.filter(id => validIds.has(id));
+        
+        const cleanedOptions = {};
+        for (const [qId, options] of Object.entries(this.bookmarkedOptions)) {
+            if (validIds.has(qId)) {
+                cleanedOptions[qId] = options;
+            }
+        }
+        this.bookmarkedOptions = cleanedOptions;
+
+        const removedCount = originalCount - this.bookmarkedIds.length;
+
+        try {
+            localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
+            localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
+            
+            await setDoc(doc(db, "users", this.user.uid), {
+                bookmarks: this.bookmarkedIds,
+                bookmarkedOptions: this.bookmarkedOptions
+            }, { merge: true });
+            
+            localStorage.removeItem('vocab_unsynced');
+            
+            const loginDesc = document.getElementById('login-desc');
+            if (loginDesc) {
+                loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
+            }
+            
+            let msg = "クラウドと同期し、ローカルの変更を反映しました！\n";
+            if (removedCount > 0) {
+                msg += `（過去の無効なゴミデータ ${removedCount} 件を削除しました）`;
+            } else {
+                msg += "（不要なゴミデータはありませんでした）";
+            }
+            alert(msg);
+            
+            this.updateBookmarkUI();
+            this.renderSidebar();
+            if (document.getElementById('bookmark-filter').checked) {
+                this.applyFilters();
+            }
+        } catch (error) {
+            console.error("同期エラー:", error);
+            alert("同期に失敗しました。通信環境を確認してください。");
+        }
+    },
+
+    async copyText() {
+        const ta = document.getElementById('json-input');
+        if (!ta.value) return;
+        try {
+            await navigator.clipboard.writeText(ta.value);
+            alert("JSONデータをクリップボードにコピーしました！");
+        } catch (err) {
+            alert("コピーに失敗しました。手動でコピーしてください。");
         }
     },
 
@@ -748,75 +859,6 @@ const app = {
         } else {
             btn.classList.remove('active');
             btn.innerText = '☆ 設問をブックマーク';
-        }
-    },
-
-    // --------------------------------------------------------
-    // 全コピー機能 ＆ クラウド同期・クリーンアップ機能の追加
-    // --------------------------------------------------------
-    async copyText() {
-        const ta = document.getElementById('json-input');
-        if (!ta.value) return;
-        try {
-            await navigator.clipboard.writeText(ta.value);
-            alert("JSONデータをクリップボードにコピーしました！");
-        } catch (err) {
-            alert("コピーに失敗しました。手動でコピーしてください。");
-        }
-    },
-
-    async syncAndCleanBookmarks() {
-        if (!this.user) {
-            alert("ログインしていません。");
-            return;
-        }
-        if (!this.allData || this.allData.length === 0) {
-            alert("単語データが読み込まれていません。先に「クラウドから最新データを取得」するか、データを取り込んでください。");
-            return;
-        }
-
-        // ゴミデータのお掃除
-        const validIds = new Set(this.allData.map(q => String(q.id)));
-        const originalCount = this.bookmarkedIds.length;
-        
-        this.bookmarkedIds = this.bookmarkedIds.filter(id => validIds.has(id));
-        
-        const cleanedOptions = {};
-        for (const [qId, options] of Object.entries(this.bookmarkedOptions)) {
-            if (validIds.has(qId)) {
-                cleanedOptions[qId] = options;
-            }
-        }
-        this.bookmarkedOptions = cleanedOptions;
-
-        const removedCount = originalCount - this.bookmarkedIds.length;
-
-        // DBとローカルストレージに手動保存
-        try {
-            localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
-            localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
-            
-            await setDoc(doc(db, "users", this.user.uid), {
-                bookmarks: this.bookmarkedIds,
-                bookmarkedOptions: this.bookmarkedOptions
-            }, { merge: true });
-            
-            let msg = "クラウドと同期し、ローカルの変更を反映しました！\n";
-            if (removedCount > 0) {
-                msg += `（過去の無効なゴミデータ ${removedCount} 件を削除しました）`;
-            } else {
-                msg += "（不要なゴミデータはありませんでした）";
-            }
-            alert(msg);
-            
-            this.updateBookmarkUI();
-            this.renderSidebar();
-            if (document.getElementById('bookmark-filter').checked) {
-                this.applyFilters();
-            }
-        } catch (error) {
-            console.error("同期エラー:", error);
-            alert("同期に失敗しました。通信環境を確認してください。");
         }
     },
     
