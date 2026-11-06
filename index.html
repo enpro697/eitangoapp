@@ -97,9 +97,11 @@
             cursor: grab; 
             user-select: none;
             -webkit-user-select: none;
-            touch-action: pan-y; 
+            touch-action: none; /* 長押し・スワイプの妨げを防ぐ */
+            transition: transform 0.15s ease, background-color 0.2s ease;
         }
         .arrow-btn:active { cursor: grabbing; background-color: var(--primary-light); }
+        .arrow-btn.holding { transform: scale(1.25); color: #ff9800; background-color: #fff3e0; }
         .arrow-btn:hover { background-color: var(--primary-light); }
         .arrow-btn:disabled { color: #ccc; background: none; cursor: not-allowed; }
 
@@ -243,7 +245,6 @@
                 <p id="login-desc" style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
-                    <!-- 手動同期＆クリーンアップボタン -->
                     <button id="sync-btn" onclick="app.syncAndCleanBookmarks()" style="background-color: #4CAF50; display: none;">クラウド同期＆データ整理</button>
                 </div>
             </div>
@@ -285,8 +286,8 @@
         </div>
 
         <div class="arrow-nav-container" id="arrow-nav-container">
-            <button class="arrow-btn" id="btn-prev" draggable="true" onclick="app.handleNavClick('prev')">＜</button>
-            <button class="arrow-btn" id="btn-next" draggable="true" onclick="app.handleNavClick('next')">＞</button>
+            <button class="arrow-btn" id="btn-prev" draggable="true">＜</button>
+            <button class="arrow-btn" id="btn-next" draggable="true">＞</button>
         </div>
 
         <div id="question-text" class="question-text"></div>
@@ -294,8 +295,8 @@
         <div id="options-container" class="options-list"></div>
 
         <div class="bottom-nav-bar">
-            <a class="nav-link" onclick="app.switchView('editor')">編集ページ</a>
-            <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ</a>
+            <a class="nav-link" onclick="app.switchView('editor')">← 読み込みデータ編集へ遷移</a>
+            <a class="nav-link" onclick="app.switchView('review')" style="color: #ff9800;">復習ページ →</a>
         </div>
     </div>
 
@@ -359,9 +360,9 @@ const app = {
     isAllAccordionsOpen: false,
     user: null,
     
+    // ナビゲーション反転用
     isNavSwapped: false,
     lastSwapTime: 0,
-    longPressTimer: null,
 
     reviewData: [],
     reviewCurrentPage: 0,
@@ -404,7 +405,6 @@ const app = {
             this.loadBookmarks();
         });
         
-        // オンライン復帰時の表示フィードバック
         window.addEventListener('online', () => {
             const isUnsynced = localStorage.getItem('vocab_unsynced') === 'true';
             if (isUnsynced && this.user) {
@@ -413,13 +413,14 @@ const app = {
             }
         });
 
+        // 保存された反転状態の復元
         const savedSwap = localStorage.getItem('vocab_nav_swapped');
         if (savedSwap === 'true') {
             this.isNavSwapped = true;
             document.getElementById('arrow-nav-container').classList.add('swapped');
         }
 
-        this.setupDragAndLongPress();
+        this.setupArrowInteractions();
         this.fetchRemoteData(false);
         this.setupGlobalClickListeners();
     },
@@ -438,51 +439,122 @@ const app = {
         if (navigator.vibrate) navigator.vibrate(50);
     },
 
-    setupDragAndLongPress() {
+    // 矢印ボタンの長押し・スワイプ・ドラッグ＆ドロップ判定を完全刷新
+    setupArrowInteractions() {
         const prevBtn = document.getElementById('btn-prev');
         const nextBtn = document.getElementById('btn-next');
-        const btns = [prevBtn, nextBtn];
+        const btns = [
+            { el: prevBtn, action: 'prev' },
+            { el: nextBtn, action: 'next' }
+        ];
 
-        btns.forEach(btn => {
-            btn.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', e.target.id);
-                e.target.style.opacity = '0.5';
+        btns.forEach(({ el, action }) => {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let longPressTimer = null;
+            let isLongPressed = false;
+
+            // --- タッチ環境（スマホ・タブレット）：長押し & 左右スワイプ ---
+            el.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                isLongPressed = false;
+
+                el.classList.add('holding');
+
+                // 0.5秒押し続けたら入れ替え実行
+                longPressTimer = setTimeout(() => {
+                    isLongPressed = true;
+                    el.classList.remove('holding');
+                    this.toggleNavSwap();
+                }, 500);
+            }, { passive: false });
+
+            el.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                const diffX = touch.clientX - touchStartX;
+                const diffY = touch.clientY - touchStartY;
+
+                // 指が横に35px以上スワイプされたら即時入れ替え実行
+                if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (longPressTimer) clearTimeout(longPressTimer);
+                    el.classList.remove('holding');
+                    if (!isLongPressed) {
+                        isLongPressed = true;
+                        this.toggleNavSwap();
+                    }
+                } else if (Math.abs(diffY) > 20) {
+                    // 縦スクロール時はキャンセル
+                    if (longPressTimer) clearTimeout(longPressTimer);
+                    el.classList.remove('holding');
+                }
+            }, { passive: false });
+
+            el.addEventListener('touchend', (e) => {
+                if (longPressTimer) clearTimeout(longPressTimer);
+                el.classList.remove('holding');
+
+                // 長押しやスワイプを実行した直後でなければ通常のページ送り
+                if (!isLongPressed && Date.now() - this.lastSwapTime > 400) {
+                    if (action === 'prev') this.prevPage();
+                    if (action === 'next') this.nextPage();
+                }
             });
-            btn.addEventListener('dragend', (e) => {
-                e.target.style.opacity = '1';
+
+            el.addEventListener('touchcancel', () => {
+                if (longPressTimer) clearTimeout(longPressTimer);
+                el.classList.remove('holding');
             });
-            btn.addEventListener('dragover', (e) => {
-                e.preventDefault(); 
+
+            // --- PC環境：クリック ＆ 長押し ---
+            el.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                isLongPressed = false;
+                el.classList.add('holding');
+
+                longPressTimer = setTimeout(() => {
+                    isLongPressed = true;
+                    el.classList.remove('holding');
+                    this.toggleNavSwap();
+                }, 500);
             });
-            btn.addEventListener('drop', (e) => {
+
+            el.addEventListener('mouseup', (e) => {
+                if (longPressTimer) clearTimeout(longPressTimer);
+                el.classList.remove('holding');
+
+                if (!isLongPressed && Date.now() - this.lastSwapTime > 400) {
+                    if (action === 'prev') this.prevPage();
+                    if (action === 'next') this.nextPage();
+                }
+            });
+
+            el.addEventListener('mouseleave', () => {
+                if (longPressTimer) clearTimeout(longPressTimer);
+                el.classList.remove('holding');
+            });
+
+            // --- PC環境：ドラッグ＆ドロップ ---
+            el.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', el.id);
+                el.style.opacity = '0.5';
+            });
+            el.addEventListener('dragend', () => {
+                el.style.opacity = '1';
+            });
+            el.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            el.addEventListener('drop', (e) => {
                 e.preventDefault();
                 const draggedId = e.dataTransfer.getData('text/plain');
-                const targetBtn = e.target.closest('.arrow-btn');
-                if (targetBtn && draggedId && draggedId !== targetBtn.id) {
+                if (draggedId && draggedId !== el.id) {
                     this.toggleNavSwap();
                 }
             });
-        });
 
-        btns.forEach(btn => {
-            btn.addEventListener('touchstart', (e) => {
-                this.longPressTimer = setTimeout(() => {
-                    this.toggleNavSwap();
-                    this.longPressTimer = null;
-                }, 600); 
-            }, { passive: true });
-
-            const cancelLongPress = () => {
-                if (this.longPressTimer) {
-                    clearTimeout(this.longPressTimer);
-                    this.longPressTimer = null;
-                }
-            };
-
-            btn.addEventListener('touchend', cancelLongPress);
-            btn.addEventListener('touchmove', cancelLongPress, { passive: true });
-            btn.addEventListener('touchcancel', cancelLongPress);
-            btn.addEventListener('contextmenu', (e) => e.preventDefault()); 
+            el.addEventListener('contextmenu', (e) => e.preventDefault());
         });
     },
 
@@ -577,11 +649,12 @@ const app = {
                 }
                 if (e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay')) return;
 
-                // --- 画面端タップ（座標ベース判定） ---
+                // --- 画面端タップ（座標判定 & 反転対応） ---
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
                 
+                // カード外側の余白、またはpadding領域をクリック
                 if (!appEl.contains(e.target) || e.target === appEl) {
                     if (clickX < screenWidth / 2) {
                         this.isNavSwapped ? this.nextPage() : this.prevPage();
@@ -591,6 +664,7 @@ const app = {
                     return;
                 }
 
+                // スマホ全画面時の端15%
                 if (clickX < screenWidth * 0.15) {
                     this.isNavSwapped ? this.nextPage() : this.prevPage();
                     return;
@@ -608,10 +682,7 @@ const app = {
 
         if (this.user) {
             if (isUnsynced) {
-                // オフライン状態からの復帰時：クラウドで上書きせずローカルを保護
-                console.log("未同期データあり: クラウド取得をスキップします");
                 this.loadFromLocalStorage();
-                
                 const loginDesc = document.getElementById('login-desc');
                 if (loginDesc) {
                     loginDesc.innerHTML = `<span style="color: #ff9800; font-weight: bold;">⚠ 未同期の変更あり：</span> オフライン時の変更が残っています。「クラウド同期」ボタンを押して保存してください。`;
@@ -1073,7 +1144,7 @@ const app = {
                 </button>
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="accordion-body">
+                        <div class="accordion-body" style="padding-top: 10px;">
                             <div class="result-mark ${isCorrect ? 'mark-o' : 'mark-x'}">
                                 ${isCorrect ? '〇 正解' : '× 不正解'}
                             </div>
@@ -1090,12 +1161,6 @@ const app = {
         this.updateSidebarHighlight();
         this.updateBookmarkUI();
         window.scrollTo({ top: 0, behavior: 'auto' }); 
-    },
-
-    handleNavClick(direction) {
-        if (Date.now() - (this.lastSwapTime || 0) < 300) return;
-        if (direction === 'prev') this.prevPage();
-        else if (direction === 'next') this.nextPage();
     },
 
    handleOptionClick(index, isCorrect) {
