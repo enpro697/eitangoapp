@@ -6,6 +6,7 @@
     <title>Vocab Master - 語彙力強化アプリ</title>
     <style>
         :root {
+            /* 共通カラー */
             --primary-color: #4A90E2;
             --primary-hover: #357ABD;
             --primary-light: #E1EFFF;
@@ -13,13 +14,69 @@
             --correct-bg: #E8F5E9;
             --incorrect-color: #F44336;
             --incorrect-bg: #FFEBEE;
+            
+            /* ライトモード用のカラー */
             --bg-color: #F8F9FA;
             --card-bg: #FFFFFF;
             --text-main: #333333;
             --text-muted: #666666;
             --border-color: #E0E0E0;
             --shadow: 0 4px 6px rgba(0,0,0,0.05);
+            
+            /* 新規追加: コンポーネント用のカラー変数 */
+            --input-bg: #FAFAFA;
+            --btn-sec-bg: #f0f0f0;
+            --btn-sec-text: #333333;
+            --btn-sec-hover: #e4e4e4;
+            --q-bg: #f0f4f8;
+            --trans-bg: #eef2f5;
+            --trans-border: #8e9eab;
+            --hover-bg: #f9f9f9;
+            --acc-bg: #fafafa;
+            --ex-bg: #ffffff;
+            --ex-border: #eeeeee;
+            --bm-bg: #ffffff;
+            --bm-hover: #f9f9f9;
+            --bm-active-bg: #fffdf5;
+            --sidebar-list-bg: #ffffff;
+            --sidebar-summary-bg: #f0f4f8;
+
             --transition: all 0.3s ease;
+        }
+
+        /* ダークモード用のカラー上書き */
+        [data-theme="dark"] {
+            --primary-color: #62A4F5;
+            --primary-hover: #4A90E2;
+            --primary-light: #1C2D42;
+            --correct-color: #66BB6A;
+            --correct-bg: #1E3324;
+            --incorrect-color: #EF5350;
+            --incorrect-bg: #3E1E22;
+            
+            --bg-color: #121212;
+            --card-bg: #1E1E1E;
+            --text-main: #E0E0E0;
+            --text-muted: #A0A0A0;
+            --border-color: #333333;
+            --shadow: 0 4px 6px rgba(0,0,0,0.5);
+            
+            --input-bg: #2C2C2C;
+            --btn-sec-bg: #333333;
+            --btn-sec-text: #E0E0E0;
+            --btn-sec-hover: #444444;
+            --q-bg: #2A2F35;
+            --trans-bg: #25282B;
+            --trans-border: #667582;
+            --hover-bg: #2A2A2A;
+            --acc-bg: #242424;
+            --ex-bg: #2A2A2A;
+            --ex-border: #444444;
+            --bm-bg: #1E1E1E;
+            --bm-hover: #2A2A2A;
+            --bm-active-bg: #332B1A;
+            --sidebar-list-bg: #1E1E1E;
+            --sidebar-summary-bg: #2A2F35;
         }
 
         body {
@@ -33,6 +90,7 @@
             scroll-behavior: smooth; 
             min-height: 100vh;
             box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         #app {
@@ -46,6 +104,7 @@
             position: relative;
             box-sizing: border-box;
             overflow-x: hidden;
+            transition: background-color 0.3s ease;
         }
 
         .hidden { display: none !important; }
@@ -64,13 +123,13 @@
         /* エディタ画面 */
         .editor-container { display: flex; flex-direction: column; gap: 15px; }
         .editor-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: -5px; }
-        .btn-secondary { background-color: #f0f0f0; color: #333; border: 1px solid #ccc; }
-        .btn-secondary:hover { background-color: #e4e4e4; }
+        .btn-secondary { background-color: var(--btn-sec-bg); color: var(--btn-sec-text); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background-color: var(--btn-sec-hover); }
         
         textarea {
             width: 100%; height: 50vh; padding: 15px; border: 1px solid var(--border-color);
             border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; box-sizing: border-box;
-            background-color: #FAFAFA;
+            background-color: var(--input-bg); color: var(--text-main); transition: var(--transition);
         }
         textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
         .error-message { color: var(--incorrect-color); background-color: var(--incorrect-bg); padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; }
@@ -79,7 +138,7 @@
         /* クイズ画面ヘッダー周り */
         .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .menu-btn { background: none; color: var(--text-main); font-size: 24px; padding: 5px; box-shadow: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-left: -5px; }
-        .menu-btn:hover { background-color: #eee; }
+        .menu-btn:hover { background-color: var(--hover-bg); }
         
         .quiz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;}
         .question-number { font-weight: bold; color: var(--text-muted); font-size: 18px; margin-bottom: 5px; }
@@ -101,25 +160,25 @@
         }
         .arrow-btn:active { cursor: grabbing; background-color: var(--primary-light); }
         .arrow-btn:hover { background-color: var(--primary-light); }
-        .arrow-btn:disabled { color: #ccc; background: none; cursor: not-allowed; }
+        .arrow-btn:disabled { color: var(--text-muted); background: none; cursor: not-allowed; opacity: 0.5; }
 
         /* スクロール位置とタップ領域の調整 */
-        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color); scroll-margin-top: 20px; cursor: pointer; }
-        .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: #eef2f5; border-radius: 6px; border-left: 5px solid #8e9eab; font-weight: 500; animation: fadeIn 0.4s ease-in-out; scroll-margin-top: 20px; cursor: pointer; }
+        .question-text { font-size: 20px; font-weight: bold; margin-bottom: 15px; line-height: 1.5; padding: 15px; background: var(--q-bg); border-radius: 8px; border-left: 5px solid var(--primary-color); scroll-margin-top: 20px; cursor: pointer; transition: var(--transition); }
+        .question-translation { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; padding: 12px 15px; background: var(--trans-bg); border-radius: 6px; border-left: 5px solid var(--trans-border); font-weight: 500; animation: fadeIn 0.4s ease-in-out; scroll-margin-top: 20px; cursor: pointer; transition: var(--transition); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 選択肢とアコーディオン */
         .options-list { display: flex; flex-direction: column; gap: 12px; }
         .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); scroll-margin-top: 20px; }
         .option-button { width: 100%; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
-        .option-button:hover { background-color: #f9f9f9; }
+        .option-button:hover { background-color: var(--hover-bg); }
         
         .option-item.answered-correct { border-color: var(--correct-color); }
         .option-item.answered-correct .option-button { background-color: var(--correct-bg); color: var(--correct-color); font-weight: bold; }
         .option-item.answered-incorrect { border-color: var(--incorrect-color); }
         .option-item.answered-incorrect .option-button { background-color: var(--incorrect-bg); color: var(--incorrect-color); }
 
-        .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; background-color: #fafafa; }
+        .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; background-color: var(--acc-bg); }
         .accordion-inner { overflow: hidden; }
         .accordion-body { padding: 0 20px 20px 20px; cursor: pointer; }
         .option-item.open .accordion-content { grid-template-rows: 1fr; }
@@ -143,17 +202,17 @@
         .mark-o { color: var(--correct-color); }
         .mark-x { color: var(--incorrect-color); }
         .meaning-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; }
-        .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
+        .example-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic; background: var(--ex-bg); padding: 10px; border-radius: 6px; border: 1px solid var(--ex-border); transition: var(--transition); }
 
         /* 設問全体のブックマークボタン */
         #bookmark-btn {
-            background-color: #fff;
+            background-color: var(--bm-bg);
             color: #ccc;
             border: 1px solid var(--border-color);
             transition: var(--transition);
         }
-        #bookmark-btn:hover { background-color: #f9f9f9; }
-        #bookmark-btn.active { color: #f5a623; border-color: #f5a623; background-color: #fffdf5; }
+        #bookmark-btn:hover { background-color: var(--bm-hover); }
+        #bookmark-btn.active { color: #f5a623; border-color: #f5a623; background-color: var(--bm-active-bg); }
 
         /* フッターナビゲーション */
         .bottom-nav-bar {
@@ -176,37 +235,45 @@
             border-top: 1px dashed var(--border-color);
         }
 
-        /* サイドバー */
+        /* サイドバー共通 */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
         
-        .sidebar { position: fixed; top: 0; left: -300px; width: 260px; height: 100%; background: var(--card-bg); z-index: 100; box-shadow: 2px 0 8px rgba(0,0,0,0.1); overflow-y: auto; transition: left 0.3s ease; padding: 20px; box-sizing: border-box; }
-        .sidebar.open { left: 0; }
+        .sidebar { position: fixed; top: 0; width: 260px; height: 100%; background: var(--card-bg); z-index: 100; box-shadow: 2px 0 8px rgba(0,0,0,0.1); overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .sidebar-header { font-size: 18px; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center;}
         .close-sidebar-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; box-shadow: none; height: 30px; width: 30px; line-height: 1;}
         .close-sidebar-btn:hover { color: var(--incorrect-color); }
         
+        /* 左サイドバー（メニュー） */
+        .left-sidebar { left: -300px; transition: left 0.3s ease; }
+        .left-sidebar.open { left: 0; }
+        
+        /* 右サイドバー（設定） */
+        .right-sidebar { right: -300px; transition: right 0.3s ease; left: auto; }
+        .right-sidebar.open { right: 0; }
+        
         .sidebar-filters { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
-        .sidebar-filters select { padding: 6px; border-radius: 4px; border: 1px solid #ccc; width: 100%; font-family: inherit; }
+        .sidebar-filters select, #review-per-page { padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); width: 100%; font-family: inherit; background-color: var(--input-bg); color: var(--text-main); }
         .sidebar-filters label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
 
         .sidebar details { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
-        .sidebar summary { background: #f0f4f8; padding: 12px 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .sidebar summary { background: var(--sidebar-summary-bg); padding: 12px 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; color: var(--text-main); }
         .sidebar summary::-webkit-details-marker { display: none; }
         .sidebar summary::after { content: "▼"; font-size: 12px; transition: transform 0.3s ease; }
         .sidebar details[open] summary::after { transform: rotate(180deg); }
         .sidebar details[open] summary { border-bottom: 1px solid var(--border-color); background: var(--primary-light); color: var(--primary-hover); }
         
-        .sidebar-list { padding: 5px 0; background: #fff;}
+        .sidebar-list { padding: 5px 0; background: var(--sidebar-list-bg);}
         .sidebar-item { padding: 10px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
-        .sidebar-item:hover { background: #f9f9f9; }
+        .sidebar-item:hover { background: var(--hover-bg); }
         .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
     </style>
 </head>
 <body>
 
+<!-- メニューサイドバー（左） -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="app.toggleSidebar(false)"></div>
-<div class="sidebar" id="sidebar">
+<div class="sidebar left-sidebar" id="sidebar">
     <div class="sidebar-header">
         設問メニュー
         <button class="close-sidebar-btn" onclick="app.toggleSidebar(false)">×</button>
@@ -229,6 +296,24 @@
     <div id="sidebar-content"></div>
 </div>
 
+<!-- 設定サイドバー（右） -->
+<div class="sidebar-overlay" id="settings-overlay" onclick="app.toggleSettings(false)"></div>
+<div class="sidebar right-sidebar" id="settings-sidebar">
+    <div class="sidebar-header">
+        設定
+        <button class="close-sidebar-btn" onclick="app.toggleSettings(false)">×</button>
+    </div>
+    
+    <div class="sidebar-filters">
+        <label style="font-weight: bold; margin-bottom: 5px; display: block;">テーマ設定</label>
+        <select id="theme-select" onchange="app.changeTheme()">
+            <option value="light">ライトモード</option>
+            <option value="dark">ダークモード</option>
+            <option value="auto">端末の設定に従う</option>
+        </select>
+    </div>
+</div>
+
 <div id="app">
     <!-- 読み込みデータ編集画面 -->
     <div id="editor-view" class="view">
@@ -238,9 +323,9 @@
         <h2>読み込みデータ編集</h2>
         
         <div class="editor-container">
-            <div style="margin: 10px 0; padding: 15px; background: #f0f4f8; border-radius: 8px; border-left: 5px solid var(--primary-color);">
+            <div style="margin: 10px 0; padding: 15px; background: var(--q-bg); border-radius: 8px; border-left: 5px solid var(--primary-color);">
                 <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
-                <p id="login-desc" style="font-size: 13px; color: #666; margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
+                <p id="login-desc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
                     <!-- 手動同期＆クリーンアップボタン -->
@@ -271,6 +356,14 @@
         <div class="top-nav-bar">
             <button class="menu-btn" onclick="app.toggleSidebar(true)">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            
+            <!-- 歯車（設定）ボタン追加 -->
+            <button class="menu-btn" onclick="app.toggleSettings(true)" style="margin-left: auto;">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
             </button>
         </div>
         
@@ -311,7 +404,7 @@
                 <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">ブックマークした選択肢一覧</div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <select id="review-per-page" onchange="app.changeReviewPerPage()" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit;">
+                <select id="review-per-page" onchange="app.changeReviewPerPage()" style="width: auto;">
                     <option value="10">10件表示</option>
                     <option value="20">20件表示</option>
                     <option value="50">50件表示</option>
@@ -371,6 +464,8 @@ const app = {
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
     init() {
+        this.initTheme(); // テーマの初期化
+
         this.allData = [];
         this.data = [];
         this.bookmarkedOptions = {};
@@ -404,7 +499,6 @@ const app = {
             this.loadBookmarks();
         });
         
-        // オンライン復帰時の表示フィードバック
         window.addEventListener('online', () => {
             const isUnsynced = localStorage.getItem('vocab_unsynced') === 'true';
             if (isUnsynced && this.user) {
@@ -423,6 +517,50 @@ const app = {
         this.fetchRemoteData(false);
         this.setupGlobalClickListeners();
     },
+
+    /* --- テーマ（ライト/ダーク）関連の処理 --- */
+    initTheme() {
+        const savedTheme = localStorage.getItem('vocab_theme') || 'auto';
+        const themeSelect = document.getElementById('theme-select');
+        if(themeSelect) themeSelect.value = savedTheme;
+        this.applyTheme(savedTheme);
+
+        // OSのテーマ設定変更を監視（auto設定時）
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (localStorage.getItem('vocab_theme') === 'auto') {
+                this.applyTheme('auto');
+            }
+        });
+    },
+
+    changeTheme() {
+        const themeSelect = document.getElementById('theme-select');
+        if(!themeSelect) return;
+        const theme = themeSelect.value;
+        localStorage.setItem('vocab_theme', theme);
+        this.applyTheme(theme);
+    },
+
+    applyTheme(theme) {
+        if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    },
+
+    toggleSettings(show) {
+        const sidebar = document.getElementById('settings-sidebar');
+        const overlay = document.getElementById('settings-overlay');
+        if (show) {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+        } else {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+    },
+    /* -------------------------------------- */
 
     toggleNavSwap() {
         this.isNavSwapped = !this.isNavSwapped;
@@ -608,7 +746,6 @@ const app = {
 
         if (this.user) {
             if (isUnsynced) {
-                // オフライン状態からの復帰時：クラウドで上書きせずローカルを保護
                 console.log("未同期データあり: クラウド取得をスキップします");
                 this.loadFromLocalStorage();
                 
@@ -1192,7 +1329,7 @@ const app = {
         container.innerHTML = '';
         
         if(this.data.length === 0) {
-             container.innerHTML = '<div style="padding: 10px; color: #666; font-size: 14px;">該当する問題がありません。</div>';
+             container.innerHTML = '<div style="padding: 10px; color: var(--text-muted); font-size: 14px;">該当する問題がありません。</div>';
              return;
         }
         
@@ -1278,7 +1415,7 @@ const app = {
         
         const pagination = document.getElementById('review-pagination');
         if (this.reviewData.length === 0) {
-            container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); background: #f9f9f9; border-radius: 8px;">ブックマークされた選択肢はありません。</div>';
+            container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--hover-bg); border-radius: 8px;">ブックマークされた選択肢はありません。</div>';
             pagination.style.display = 'none';
             return;
         }
