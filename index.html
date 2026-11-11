@@ -23,7 +23,7 @@
             --border-color: #E0E0E0;
             --shadow: 0 4px 6px rgba(0,0,0,0.05);
             
-            /* 新規追加: コンポーネント用のカラー変数 */
+            /* コンポーネント用のカラー変数 */
             --input-bg: #FAFAFA;
             --btn-sec-bg: #f0f0f0;
             --btn-sec-text: #333333;
@@ -196,7 +196,17 @@
         }
         .opt-bookmark-btn:hover { color: #f5a623; }
         .opt-bookmark-btn.active { color: #f5a623; }
-        .word-text-wrapper { display: flex; align-items: center; }
+        
+        /* テキスト部分とナビ入れ替え時の順序制御 */
+        .option-text { flex-grow: 1; text-align: left; }
+        
+        body.nav-swapped .opt-bookmark-btn { 
+            order: 2; 
+            margin-right: 15px; 
+            margin-left: auto; 
+        }
+        body.nav-swapped .option-text { order: 1; }
+        body.nav-swapped .icon-toggle { order: 3; }
 
         .result-mark { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
         .mark-o { color: var(--correct-color); }
@@ -358,8 +368,8 @@
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
             
-            <!-- 歯車（設定）ボタン追加 -->
-<button class="menu-btn" onclick="app.toggleSettings(true)" style="margin-left: auto; color: var(--text-muted); opacity: 0.6;">
+            <!-- 歯車（設定）ボタン -->
+            <button class="menu-btn" onclick="app.toggleSettings(true)" style="margin-left: auto; color: var(--text-muted); opacity: 0.6;">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -464,7 +474,7 @@ const app = {
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
     init() {
-        this.initTheme(); // テーマの初期化
+        this.initTheme();
 
         this.allData = [];
         this.data = [];
@@ -511,6 +521,7 @@ const app = {
         if (savedSwap === 'true') {
             this.isNavSwapped = true;
             document.getElementById('arrow-nav-container').classList.add('swapped');
+            document.body.classList.add('nav-swapped');
         }
 
         this.setupDragAndLongPress();
@@ -518,14 +529,12 @@ const app = {
         this.setupGlobalClickListeners();
     },
 
-    /* --- テーマ（ライト/ダーク）関連の処理 --- */
     initTheme() {
         const savedTheme = localStorage.getItem('vocab_theme') || 'auto';
         const themeSelect = document.getElementById('theme-select');
         if(themeSelect) themeSelect.value = savedTheme;
         this.applyTheme(savedTheme);
 
-        // OSのテーマ設定変更を監視（auto設定時）
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
             if (localStorage.getItem('vocab_theme') === 'auto') {
                 this.applyTheme('auto');
@@ -560,7 +569,6 @@ const app = {
             overlay.classList.remove('active');
         }
     },
-    /* -------------------------------------- */
 
     toggleNavSwap() {
         this.isNavSwapped = !this.isNavSwapped;
@@ -570,8 +578,10 @@ const app = {
         const container = document.getElementById('arrow-nav-container');
         if (this.isNavSwapped) {
             container.classList.add('swapped');
+            document.body.classList.add('nav-swapped');
         } else {
             container.classList.remove('swapped');
+            document.body.classList.remove('nav-swapped');
         }
         if (navigator.vibrate) navigator.vibrate(50);
     },
@@ -643,7 +653,6 @@ const app = {
             if (!isQuizView && !isReviewView) return;
             if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select')) return;
 
-            // 復習ページの挙動
             if (isReviewView) {
                 const accordionBody = e.target.closest('.accordion-body');
                 if (accordionBody) {
@@ -672,7 +681,6 @@ const app = {
                 return;
             }
 
-            // クイズページの挙動
             if (isQuizView) {
                 if (e.target.closest('#question-text')) {
                     this.toggleAllAccordions();
@@ -715,7 +723,6 @@ const app = {
                 }
                 if (e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay')) return;
 
-                // --- 画面端タップ（座標ベース判定） ---
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
@@ -746,9 +753,7 @@ const app = {
 
         if (this.user) {
             if (isUnsynced) {
-                console.log("未同期データあり: クラウド取得をスキップします");
                 this.loadFromLocalStorage();
-                
                 const loginDesc = document.getElementById('login-desc');
                 if (loginDesc) {
                     loginDesc.innerHTML = `<span style="color: #ff9800; font-weight: bold;">⚠ 未同期の変更あり：</span> オフライン時の変更が残っています。「クラウド同期」ボタンを押して保存してください。`;
@@ -769,7 +774,6 @@ const app = {
                         loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
                     }
                 } catch(e) { 
-                    console.error("取得エラー", e); 
                     this.loadFromLocalStorage();
                 }
             }
@@ -825,7 +829,6 @@ const app = {
                     loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
                 }
             } catch(e) {
-                console.error("クラウド保存エラー", e);
                 const loginDesc = document.getElementById('login-desc');
                 if (loginDesc) {
                     loginDesc.innerHTML = `<span style="color: #ff9800; font-weight: bold;">⚠ 同期エラー：</span> 変更はローカルに保存されました。後で同期してください。`;
@@ -893,7 +896,6 @@ const app = {
                 this.applyFilters();
             }
         } catch (error) {
-            console.error("同期エラー:", error);
             alert("同期に失敗しました。通信環境を確認してください。");
         }
     },
@@ -1016,7 +1018,6 @@ const app = {
 
             if (isManualClick) alert("クラウドから最新の単語データを取得し、適用しました！");
         } catch (error) {
-            console.error("データの取得に失敗しました:", error);
             if (isManualClick) {
                 alert("データの取得・解析に失敗しました。JSONの記述にエラーがある可能性があります。");
                 document.getElementById('json-input').value = this.savedJsonString;
@@ -1094,7 +1095,6 @@ const app = {
             this.applyFilters(); 
             this.switchView('quiz');
         } catch (e) {
-            console.error(e);
             alert('データの取り込みに失敗しました。');
         }
     },
@@ -1199,13 +1199,11 @@ const app = {
 
             itemDiv.innerHTML = `
                 <button class="option-button" onclick="app.handleOptionClick(${index}, ${isCorrect})">
-                    <span class="word-text-wrapper">
-                        <span id="opt-star-${index}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
-                              onclick="app.toggleOptionBookmark(event, '${q.id}', '${escapedWordStr}', ${index})">
-                            ${isOptionBookmarked ? '★' : '☆'}
-                        </span>
-                        <span>${index + 1}. ${wordStr}</span>
+                    <span id="opt-star-${index}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
+                          onclick="app.toggleOptionBookmark(event, '${q.id}', '${escapedWordStr}', ${index})">
+                        ${isOptionBookmarked ? '★' : '☆'}
                     </span>
+                    <span class="option-text">${index + 1}. ${wordStr}</span>
                     <span class="icon-toggle">▼</span>
                 </button>
                 <div class="accordion-content">
@@ -1380,10 +1378,6 @@ const app = {
         }
     },
 
-    /* =========================================================
-       復習ページ（Review）用のロジック
-       ========================================================= */
-    
     buildReviewData() {
         this.reviewData = [];
         for (const q of this.allData) {
@@ -1438,13 +1432,11 @@ const app = {
             
             itemDiv.innerHTML = `
                 <button class="option-button" onclick="app.handleReviewOptionClick(${i})">
-                    <span class="word-text-wrapper">
-                        <span id="review-star-${i}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
-                              onclick="app.toggleReviewBookmark(event, '${item.qId}', '${escapedWordStr}', ${i})">
-                            ${isOptionBookmarked ? '★' : '☆'}
-                        </span>
-                        <span>${item.wordStr}</span>
+                    <span id="review-star-${i}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
+                          onclick="app.toggleReviewBookmark(event, '${item.qId}', '${escapedWordStr}', ${i})">
+                        ${isOptionBookmarked ? '★' : '☆'}
                     </span>
+                    <span class="option-text">${item.wordStr}</span>
                     <span class="icon-toggle">▼</span>
                 </button>
                 <div class="accordion-content">
