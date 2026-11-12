@@ -187,26 +187,37 @@
         /* 選択肢ごとのブックマークアイコン */
         .opt-bookmark-btn {
             cursor: pointer;
-            margin-right: 12px;
             color: #dcdcdc;
             font-size: 20px;
             transition: var(--transition);
             display: inline-block;
             user-select: none;
+            /* デフォルト（右手モード >< ではない時）は右側に配置 */
+            order: 2;
+            margin-left: auto;
+            margin-right: 15px;
         }
         .opt-bookmark-btn:hover { color: #f5a623; }
         .opt-bookmark-btn.active { color: #f5a623; }
         
-        /* テキスト部分とナビ入れ替え時の順序制御 */
-        .option-text { flex-grow: 1; text-align: left; }
-        
-        body.nav-swapped .opt-bookmark-btn { 
-            order: 2; 
-            margin-right: 15px; 
-            margin-left: auto; 
+        /* テキスト部分 */
+        .option-text { 
+            flex-grow: 1; 
+            text-align: left; 
+            order: 1;
         }
-        body.nav-swapped .option-text { order: 1; }
-        body.nav-swapped .icon-toggle { order: 3; }
+        
+        /* アコーディオンアイコン */
+        .icon-toggle { order: 3; }
+
+        /* 左手モード（>< の時）は星を左側に戻す */
+        body.nav-swapped .opt-bookmark-btn { 
+            order: 1; 
+            margin-left: 0;
+            margin-right: 12px; 
+        }
+        body.nav-swapped .option-text { order: 2; }
+
 
         .result-mark { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
         .mark-o { color: var(--correct-color); }
