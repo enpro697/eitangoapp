@@ -1252,43 +1252,58 @@ const app = {
         else if (direction === 'next') this.nextPage();
     },
 
-   handleOptionClick(index, isCorrect) {
+    handleOptionClick(index, isCorrect) {
         const item = document.getElementById(`option-item-${index}`);
         if (item.classList.contains('open')) {
             item.classList.remove('open');
         } else {
             item.classList.add('open');
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
-
-            if (isCorrect) {
-                setTimeout(() => {
-                    this.scrollToElement(item);
-                }, 300);
-            }
         }
+        
+        // 先に表示状態を更新してからスクロール先の要素を判定する
         this.checkTranslationVisibility();
+
+        if (item.classList.contains('open') && isCorrect) {
+            setTimeout(() => {
+                const transEl = document.getElementById('question-translation');
+                // 日本語訳が表示されていればそこを基準に、なければ設問文を基準にスクロール
+                if (transEl && !transEl.classList.contains('hidden')) {
+                    this.scrollToElement(transEl);
+                } else {
+                    this.scrollToElement(document.getElementById('question-text'));
+                }
+            }, 300);
+        }
     },
 
-  toggleAllAccordions() {
+    toggleAllAccordions() {
         this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
         const items = document.querySelectorAll('#quiz-view .option-item');
-        let correctItem = null;
+        let hasCorrect = false;
 
         items.forEach((item) => {
             const isCorrect = item.querySelector('.mark-o') !== null;
             if (this.isAllAccordionsOpen) {
                 item.classList.add('open');
                 item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
-                if (isCorrect) correctItem = item; 
+                if (isCorrect) hasCorrect = true; 
             } else {
                 item.classList.remove('open');
             }
         });
+        
+        // 先に表示状態を更新してからスクロール先の要素を判定する
         this.checkTranslationVisibility();
 
-        if (this.isAllAccordionsOpen && correctItem) {
+        if (this.isAllAccordionsOpen && hasCorrect) {
             setTimeout(() => {
-                this.scrollToElement(correctItem);
+                const transEl = document.getElementById('question-translation');
+                if (transEl && !transEl.classList.contains('hidden')) {
+                    this.scrollToElement(transEl);
+                } else {
+                    this.scrollToElement(document.getElementById('question-text'));
+                }
             }, 300);
         }
     },
