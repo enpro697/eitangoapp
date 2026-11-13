@@ -491,6 +491,10 @@ const app = {
         this.data = [];
         this.bookmarkedOptions = {};
 
+        // ★追加：データが読み込まれる前にローカルのブックマーク情報を同期的に復元しておく
+        // これにより、初回ロード時にも一番進んでいる問題へ自動で飛ぶことができます。
+        this.loadFromLocalStorage();
+
         const jsonInput = document.getElementById('json-input');
         jsonInput.value = this.savedJsonString;
         jsonInput.addEventListener('input', () => this.validateJsonInput());
