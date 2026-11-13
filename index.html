@@ -1162,12 +1162,27 @@ const app = {
     },
 
     switchView(viewName) {
+        // エディタ画面からの遷移かどうかを判定
+        const isFromEditor = !document.getElementById('editor-view').classList.contains('hidden');
+
         document.getElementById('editor-view').classList.add('hidden');
         document.getElementById('quiz-view').classList.add('hidden');
         document.getElementById('review-view').classList.add('hidden');
         document.getElementById(`${viewName}-view`).classList.remove('hidden');
 
         if (viewName === 'quiz' && this.data.length > 0) {
+            // エディタ画面からの遷移時のみ、一番大きいブックマーク済みの設問番号に移動する
+            if (isFromEditor) {
+                let highestIndex = 0;
+                // 後ろから検索して最初に見つかったブックマーク済みのインデックスを取得
+                for (let i = this.data.length - 1; i >= 0; i--) {
+                    if (this.bookmarkedIds.includes(String(this.data[i].id))) {
+                        highestIndex = i;
+                        break;
+                    }
+                }
+                this.currentIndex = highestIndex;
+            }
             this.renderQuiz();
         } else if (viewName === 'review') {
             this.buildReviewData();
@@ -1261,13 +1276,12 @@ const app = {
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
         }
         
-        // 先に表示状態を更新してからスクロール先の要素を判定する
         this.checkTranslationVisibility();
 
+        // 正解した場合は日本語訳（または問題文）へスクロール
         if (item.classList.contains('open') && isCorrect) {
             setTimeout(() => {
                 const transEl = document.getElementById('question-translation');
-                // 日本語訳が表示されていればそこを基準に、なければ設問文を基準にスクロール
                 if (transEl && !transEl.classList.contains('hidden')) {
                     this.scrollToElement(transEl);
                 } else {
@@ -1293,7 +1307,6 @@ const app = {
             }
         });
         
-        // 先に表示状態を更新してからスクロール先の要素を判定する
         this.checkTranslationVisibility();
 
         if (this.isAllAccordionsOpen && hasCorrect) {
