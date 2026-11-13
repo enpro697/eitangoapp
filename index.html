@@ -491,8 +491,7 @@ const app = {
         this.data = [];
         this.bookmarkedOptions = {};
 
-        // ★追加：データが読み込まれる前にローカルのブックマーク情報を同期的に復元しておく
-        // これにより、初回ロード時にも一番進んでいる問題へ自動で飛ぶことができます。
+        // データが読み込まれる前にローカルのブックマーク情報を同期的に復元しておく
         this.loadFromLocalStorage();
 
         const jsonInput = document.getElementById('json-input');
@@ -1298,14 +1297,14 @@ const app = {
     toggleAllAccordions() {
         this.isAllAccordionsOpen = !this.isAllAccordionsOpen;
         const items = document.querySelectorAll('#quiz-view .option-item');
-        let hasCorrect = false;
+        let correctItem = null;
 
         items.forEach((item) => {
             const isCorrect = item.querySelector('.mark-o') !== null;
             if (this.isAllAccordionsOpen) {
                 item.classList.add('open');
                 item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
-                if (isCorrect) hasCorrect = true; 
+                if (isCorrect) correctItem = item; 
             } else {
                 item.classList.remove('open');
             }
@@ -1313,14 +1312,10 @@ const app = {
         
         this.checkTranslationVisibility();
 
-        if (this.isAllAccordionsOpen && hasCorrect) {
+        // 全開閉時は、正解の選択肢へスクロール
+        if (this.isAllAccordionsOpen && correctItem) {
             setTimeout(() => {
-                const transEl = document.getElementById('question-translation');
-                if (transEl && !transEl.classList.contains('hidden')) {
-                    this.scrollToElement(transEl);
-                } else {
-                    this.scrollToElement(document.getElementById('question-text'));
-                }
+                this.scrollToElement(correctItem);
             }, 300);
         }
     },
