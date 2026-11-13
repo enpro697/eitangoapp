@@ -14,7 +14,7 @@
             --correct-bg: #E8F5E9;
             --incorrect-color: #F44336;
             --incorrect-bg: #FFEBEE;
-            
+
             /* ライトモード用のカラー */
             --bg-color: #F8F9FA;
             --card-bg: #FFFFFF;
@@ -22,7 +22,7 @@
             --text-muted: #666666;
             --border-color: #E0E0E0;
             --shadow: 0 4px 6px rgba(0,0,0,0.05);
-            
+
             /* コンポーネント用のカラー変数 */
             --input-bg: #FAFAFA;
             --btn-sec-bg: #f0f0f0;
@@ -53,14 +53,14 @@
             --correct-bg: #1E3324;
             --incorrect-color: #EF5350;
             --incorrect-bg: #3E1E22;
-            
+
             --bg-color: #121212;
             --card-bg: #1E1E1E;
             --text-main: #E0E0E0;
             --text-muted: #A0A0A0;
             --border-color: #333333;
             --shadow: 0 4px 6px rgba(0,0,0,0.5);
-            
+
             --input-bg: #2C2C2C;
             --btn-sec-bg: #333333;
             --btn-sec-text: #E0E0E0;
@@ -112,7 +112,7 @@
         h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-top: 0; }
         .nav-link { color: var(--primary-color); text-decoration: none; font-weight: bold; display: inline-block; cursor: pointer; }
         .nav-link:hover { text-decoration: underline; }
-        
+
         button {
             background-color: var(--primary-color); color: white; border: none; padding: 10px 20px;
             border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: var(--transition);
@@ -125,7 +125,7 @@
         .editor-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: -5px; }
         .btn-secondary { background-color: var(--btn-sec-bg); color: var(--btn-sec-text); border: 1px solid var(--border-color); }
         .btn-secondary:hover { background-color: var(--btn-sec-hover); }
-        
+
         textarea {
             width: 100%; height: 50vh; padding: 15px; border: 1px solid var(--border-color);
             border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; box-sizing: border-box;
@@ -139,10 +139,10 @@
         .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .menu-btn { background: none; color: var(--text-main); font-size: 24px; padding: 5px; box-shadow: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-left: -5px; }
         .menu-btn:hover { background-color: var(--hover-bg); }
-        
+
         .quiz-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;}
         .question-number { font-weight: bold; color: var(--text-muted); font-size: 18px; margin-bottom: 5px; }
-        
+
         /* 矢印ナビゲーション */
         .arrow-nav-container { 
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; 
@@ -172,7 +172,7 @@
         .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); scroll-margin-top: 20px; }
         .option-button { width: 100%; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
         .option-button:hover { background-color: var(--hover-bg); }
-        
+
         .option-item.answered-correct { border-color: var(--correct-color); }
         .option-item.answered-correct .option-button { background-color: var(--correct-bg); color: var(--correct-color); font-weight: bold; }
         .option-item.answered-incorrect { border-color: var(--incorrect-color); }
@@ -199,14 +199,14 @@
         }
         .opt-bookmark-btn:hover { color: #f5a623; }
         .opt-bookmark-btn.active { color: #f5a623; }
-        
+
         /* テキスト部分 */
         .option-text { 
             flex-grow: 1; 
             text-align: left; 
             order: 1;
         }
-        
+
         /* アコーディオンアイコン */
         .icon-toggle { order: 3; }
 
@@ -259,20 +259,20 @@
         /* サイドバー共通 */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
-        
+
         .sidebar { position: fixed; top: 0; width: 260px; height: 100%; background: var(--card-bg); z-index: 100; box-shadow: 2px 0 8px rgba(0,0,0,0.1); overflow-y: auto; padding: 20px; box-sizing: border-box; }
         .sidebar-header { font-size: 18px; font-weight: bold; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center;}
         .close-sidebar-btn { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 0; box-shadow: none; height: 30px; width: 30px; line-height: 1;}
         .close-sidebar-btn:hover { color: var(--incorrect-color); }
-        
+
         /* 左サイドバー（メニュー） */
         .left-sidebar { left: -300px; transition: left 0.3s ease; }
         .left-sidebar.open { left: 0; }
-        
+
         /* 右サイドバー（設定） */
         .right-sidebar { right: -300px; transition: right 0.3s ease; left: auto; }
         .right-sidebar.open { right: 0; }
-        
+
         .sidebar-filters { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
         .sidebar-filters select, #review-per-page { padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); width: 100%; font-family: inherit; background-color: var(--input-bg); color: var(--text-main); }
         .sidebar-filters label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
@@ -283,7 +283,7 @@
         .sidebar summary::after { content: "▼"; font-size: 12px; transition: transform 0.3s ease; }
         .sidebar details[open] summary::after { transform: rotate(180deg); }
         .sidebar details[open] summary { border-bottom: 1px solid var(--border-color); background: var(--primary-light); color: var(--primary-hover); }
-        
+
         .sidebar-list { padding: 5px 0; background: var(--sidebar-list-bg);}
         .sidebar-item { padding: 10px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
         .sidebar-item:hover { background: var(--hover-bg); }
@@ -299,7 +299,7 @@
         設問メニュー
         <button class="close-sidebar-btn" onclick="app.toggleSidebar(false)">×</button>
     </div>
-    
+
     <div class="sidebar-filters">
         <select id="difficulty-filter" onchange="app.applyFilters()">
             <option value="all">すべての難易度</option>
@@ -324,7 +324,7 @@
         設定
         <button class="close-sidebar-btn" onclick="app.toggleSettings(false)">×</button>
     </div>
-    
+
     <div class="sidebar-filters">
         <label style="font-weight: bold; margin-bottom: 5px; display: block;">テーマ設定</label>
         <select id="theme-select" onchange="app.changeTheme()">
@@ -342,7 +342,7 @@
             <a class="nav-link" onclick="app.switchView('quiz')">設問ページ →</a>
         </div>
         <h2>読み込みデータ編集</h2>
-        
+
         <div class="editor-container">
             <div style="margin: 10px 0; padding: 15px; background: var(--q-bg); border-radius: 8px; border-left: 5px solid var(--primary-color);">
                 <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
@@ -360,11 +360,11 @@
                 <button class="btn-secondary" onclick="app.scrollToBottom()">最下部へスクロール</button>
                 <button style="background-color: #ff9800; color: white; border: none;" onclick="app.fetchRemoteData(true)">クラウドから最新データを取得</button>
             </div>
-            
+
             <textarea id="json-input" placeholder="ここにJSONデータを貼り付けてください。複数の配列をペーストしても自動で結合されます。"></textarea>
-            
+
             <div id="json-error" class="error-message hidden">JSONの形式を満たしていません。記述を確認してください。</div>
-            
+
             <div class="editor-actions">
                 <span style="font-size: 12px; color: var(--text-muted);">※差分がある場合のみボタンが活性化します</span>
                 <button id="import-btn" disabled onclick="app.importData()">取り込みボタン</button>
@@ -378,7 +378,7 @@
             <button class="menu-btn" onclick="app.toggleSidebar(true)">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            
+
             <!-- 歯車（設定）ボタン -->
             <button class="menu-btn" onclick="app.toggleSettings(true)" style="margin-left: auto; color: var(--text-muted); opacity: 0.6;">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -387,7 +387,7 @@
                 </svg>
             </button>
         </div>
-        
+
         <div class="quiz-header">
             <div>
                 <div class="question-number">Question <span id="q-current">1</span> / <span id="q-total">1</span></div>
@@ -418,7 +418,7 @@
         <div class="top-nav-bar">
             <a class="nav-link" onclick="app.switchView('quiz')">← 設問ページに戻る</a>
         </div>
-        
+
         <div class="quiz-header" style="align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 15px; margin-bottom: 20px;">
             <div>
                 <h2 style="border: none; padding: 0; margin: 0; font-size: 22px;">復習ページ</h2>
@@ -433,9 +433,9 @@
                 <button id="review-toggle-accordion-btn" onclick="app.toggleReviewAccordions()">アコーディオンを全開閉</button>
             </div>
         </div>
-        
+
         <div id="review-list-container" class="options-list"></div>
-        
+
         <div class="pagination-container" id="review-pagination">
             <button id="review-btn-prev" class="btn-secondary" onclick="app.prevReviewPage()">＜ 前へ</button>
             <span id="review-page-info" style="font-weight: bold; color: var(--text-muted);">1 / 1</span>
@@ -472,7 +472,7 @@ const app = {
     currentIndex: 0,
     isAllAccordionsOpen: false,
     user: null,
-    
+
     isNavSwapped: false,
     lastSwapTime: 0,
     longPressTimer: null,
@@ -481,7 +481,7 @@ const app = {
     reviewCurrentPage: 0,
     reviewPerPage: 10,
     isReviewAccordionsOpen: false,
-    
+
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
     init() {
@@ -494,11 +494,11 @@ const app = {
         const jsonInput = document.getElementById('json-input');
         jsonInput.value = this.savedJsonString;
         jsonInput.addEventListener('input', () => this.validateJsonInput());
-        
+
         onAuthStateChanged(auth, (user) => {
             const loginBtn = document.getElementById('login-btn');
             const syncBtn = document.getElementById('sync-btn');
-            
+
             if (user) {
                 this.user = user;
                 if (loginBtn) {
@@ -513,13 +513,13 @@ const app = {
                     loginBtn.style.backgroundColor = "#db4437"; 
                 }
                 if (syncBtn) syncBtn.style.display = "none";
-                
+
                 const loginDesc = document.getElementById('login-desc');
                 if (loginDesc) loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークが同期されます。";
             }
             this.loadBookmarks();
         });
-        
+
         window.addEventListener('online', () => {
             const isUnsynced = localStorage.getItem('vocab_unsynced') === 'true';
             if (isUnsynced && this.user) {
@@ -538,6 +538,14 @@ const app = {
         this.setupDragAndLongPress();
         this.fetchRemoteData(false);
         this.setupGlobalClickListeners();
+    },
+
+    // 指定した要素が画面の上部1/3くらいに来るようにスクロールする関数
+    scrollToElement(el) {
+        if (!el) return;
+        const offset = window.innerHeight / 3;
+        const y = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
     },
 
     initTheme() {
@@ -585,7 +593,7 @@ const app = {
         this.isNavSwapped = !this.isNavSwapped;
         this.lastSwapTime = Date.now();
         localStorage.setItem('vocab_nav_swapped', this.isNavSwapped);
-        
+
         const container = document.getElementById('arrow-nav-container');
         if (this.isNavSwapped) {
             container.classList.add('swapped');
@@ -660,7 +668,7 @@ const app = {
         document.addEventListener('click', (e) => {
             const isQuizView = !document.getElementById('quiz-view').classList.contains('hidden');
             const isReviewView = !document.getElementById('review-view').classList.contains('hidden');
-            
+
             if (!isQuizView && !isReviewView) return;
             if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select')) return;
 
@@ -679,11 +687,11 @@ const app = {
                         }
                     }
                     if (targetItem) {
-                        targetItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        this.scrollToElement(targetItem);
                     } else {
                         const firstOpen = allItems.find(item => item.classList.contains('open'));
                         if (firstOpen) {
-                            firstOpen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            this.scrollToElement(firstOpen);
                         } else {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
@@ -704,7 +712,7 @@ const app = {
                         let targetIndex = correctIndex + 1;
                         if (targetIndex >= options.length) targetIndex = 0;
                         const targetEl = document.getElementById(`option-item-${targetIndex}`);
-                        if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        this.scrollToElement(targetEl);
                     }
                     return;
                 }
@@ -715,19 +723,19 @@ const app = {
                     const currentIndex = options.indexOf(optionItem);
 
                     if (optionItem.classList.contains('answered-correct')) {
-                        document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        this.scrollToElement(document.getElementById('question-text'));
                     } else {
                         let targetIndex = currentIndex + 1;
                         if (targetIndex >= options.length) {
                             const transEl = document.getElementById('question-translation');
                             if (!transEl.classList.contains('hidden')) {
-                                transEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                this.scrollToElement(transEl);
                             } else {
-                                document.getElementById('question-text').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                this.scrollToElement(document.getElementById('question-text'));
                             }
                         } else {
                             const targetEl = document.getElementById(`option-item-${targetIndex}`);
-                            if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            this.scrollToElement(targetEl);
                         }
                     }
                     return;
@@ -737,7 +745,7 @@ const app = {
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
-                
+
                 if (!appEl.contains(e.target) || e.target === appEl) {
                     if (clickX < screenWidth / 2) {
                         this.isNavSwapped ? this.nextPage() : this.prevPage();
@@ -815,10 +823,10 @@ const app = {
     async saveBookmarks() {
         localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
         localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
-        
+
         if (this.user) {
             localStorage.setItem('vocab_unsynced', 'true');
-            
+
             if (!navigator.onLine) {
                 const loginDesc = document.getElementById('login-desc');
                 if (loginDesc) {
@@ -832,9 +840,9 @@ const app = {
                     bookmarks: this.bookmarkedIds,
                     bookmarkedOptions: this.bookmarkedOptions
                 }, { merge: true });
-                
+
                 localStorage.removeItem('vocab_unsynced');
-                
+
                 const loginDesc = document.getElementById('login-desc');
                 if (loginDesc) {
                     loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
@@ -864,9 +872,9 @@ const app = {
 
         const validIds = new Set(this.allData.map(q => String(q.id)));
         const originalCount = this.bookmarkedIds.length;
-        
+
         this.bookmarkedIds = this.bookmarkedIds.filter(id => validIds.has(id));
-        
+
         const cleanedOptions = {};
         for (const [qId, options] of Object.entries(this.bookmarkedOptions)) {
             if (validIds.has(qId)) {
@@ -880,19 +888,19 @@ const app = {
         try {
             localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
             localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
-            
+
             await setDoc(doc(db, "users", this.user.uid), {
                 bookmarks: this.bookmarkedIds,
                 bookmarkedOptions: this.bookmarkedOptions
             }, { merge: true });
-            
+
             localStorage.removeItem('vocab_unsynced');
-            
+
             const loginDesc = document.getElementById('login-desc');
             if (loginDesc) {
                 loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
             }
-            
+
             let msg = "クラウドと同期し、ローカルの変更を反映しました！\n";
             if (removedCount > 0) {
                 msg += `（過去の無効なゴミデータ ${removedCount} 件を削除しました）`;
@@ -900,7 +908,7 @@ const app = {
                 msg += "（不要なゴミデータはありませんでした）";
             }
             alert(msg);
-            
+
             this.updateBookmarkUI();
             this.renderSidebar();
             if (document.getElementById('bookmark-filter').checked) {
@@ -925,14 +933,14 @@ const app = {
     toggleBookmark() {
         const q = this.data[this.currentIndex];
         if (!q) return;
-        
+
         const qId = String(q.id);
         const idx = this.bookmarkedIds.indexOf(qId);
-        
+
         if (idx > -1) {
             this.bookmarkedIds.splice(idx, 1);
             delete this.bookmarkedOptions[qId];
-            
+
             const stars = document.querySelectorAll('.opt-bookmark-btn');
             stars.forEach(s => {
                 s.innerText = '☆';
@@ -941,11 +949,11 @@ const app = {
         } else {
             this.bookmarkedIds.push(qId);
         }
-        
+
         this.saveBookmarks();
         this.updateBookmarkUI();
         this.renderSidebar();
-        
+
         if (document.getElementById('bookmark-filter').checked && idx > -1) {
             this.applyFilters();
         }
@@ -953,21 +961,21 @@ const app = {
 
     toggleOptionBookmark(event, qId, wordStr, index) {
         event.stopPropagation();
-        
+
         if (!this.bookmarkedOptions[qId]) {
             this.bookmarkedOptions[qId] = [];
         }
-        
+
         const idx = this.bookmarkedOptions[qId].indexOf(wordStr);
         const starEl = document.getElementById(`opt-star-${index}`);
-        
+
         if (idx > -1) {
             this.bookmarkedOptions[qId].splice(idx, 1);
             if (starEl) {
                 starEl.innerText = '☆';
                 starEl.classList.remove('active');
             }
-            
+
             if (this.bookmarkedOptions[qId].length === 0) {
                 delete this.bookmarkedOptions[qId];
                 const qIdx = this.bookmarkedIds.indexOf(qId);
@@ -979,16 +987,16 @@ const app = {
                 starEl.innerText = '★';
                 starEl.classList.add('active');
             }
-            
+
             if (!this.bookmarkedIds.includes(qId)) {
                 this.bookmarkedIds.push(qId);
             }
         }
-        
+
         this.saveBookmarks();
         this.updateBookmarkUI();
         this.renderSidebar();
-        
+
         if (document.getElementById('bookmark-filter').checked && !this.bookmarkedIds.includes(qId)) {
             this.applyFilters();
         }
@@ -1011,20 +1019,20 @@ const app = {
             btn.innerText = '☆ 設問をブックマーク';
         }
     },
-    
+
     async fetchRemoteData(isManualClick = false) {
         try {
             if (isManualClick) document.getElementById('json-input').value = "通信中...";
-            
+
             const response = await fetch(this.REMOTE_JSON_URL); 
             if (!response.ok) throw new Error("Network response was not ok");
-            
+
             const rawText = await response.text();
             const remoteData = this.parseCustomJSON(rawText); 
-            
+
             const formattedJson = JSON.stringify(remoteData, null, 2);
             document.getElementById('json-input').value = formattedJson;
-            
+
             this.importData();
 
             if (isManualClick) alert("クラウドから最新の単語データを取得し、適用しました！");
@@ -1075,7 +1083,7 @@ const app = {
         const inputVal = document.getElementById('json-input').value;
         const errorMsg = document.getElementById('json-error');
         const importBtn = document.getElementById('import-btn');
-        
+
         if (!inputVal.trim()) {
             errorMsg.classList.add('hidden');
             importBtn.disabled = true;
@@ -1102,7 +1110,7 @@ const app = {
             this.savedJsonString = JSON.stringify(this.allData, null, 2);
             document.getElementById('json-input').value = this.savedJsonString; 
             document.getElementById('import-btn').disabled = true;
-            
+
             this.applyFilters(); 
             this.switchView('quiz');
         } catch (e) {
@@ -1128,7 +1136,7 @@ const app = {
 
         this.currentIndex = 0;
         this.renderSidebar();
-        
+
         if (this.data.length > 0) {
             this.renderQuiz();
         } else {
@@ -1158,7 +1166,7 @@ const app = {
         document.getElementById('quiz-view').classList.add('hidden');
         document.getElementById('review-view').classList.add('hidden');
         document.getElementById(`${viewName}-view`).classList.remove('hidden');
-        
+
         if (viewName === 'quiz' && this.data.length > 0) {
             this.renderQuiz();
         } else if (viewName === 'review') {
@@ -1169,18 +1177,18 @@ const app = {
 
     renderQuiz() {
         if (!this.data || this.data.length === 0) return;
-        
+
         this.isAllAccordionsOpen = false;
         const q = this.data[this.currentIndex];
-        
+
         document.getElementById('q-current').innerText = this.currentIndex + 1;
         document.getElementById('q-total').innerText = this.data.length;
         document.getElementById('question-text').innerText = q.question || q.word || "問題文がありません";
-        
+
         const transDiv = document.getElementById('question-translation');
         transDiv.innerText = q.question_ja || q.meaning || q.translation || "";
         transDiv.classList.add('hidden');
-        
+
         const container = document.getElementById('options-container');
         container.innerHTML = '';
 
@@ -1199,12 +1207,12 @@ const app = {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'option-item';
             itemDiv.id = `option-item-${index}`;
-            
+
             let wordStr = opt.word || opt;
             let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
             let isCorrect = opt.is_correct === true || q.answer === wordStr || q.answer_index === index;
             let exampleStr = opt.example || q.example || q.sentence || q.punchline || "";
-            
+
             let isOptionBookmarked = this.bookmarkedOptions[q.id] && this.bookmarkedOptions[q.id].includes(wordStr);
             let escapedWordStr = wordStr.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
@@ -1251,10 +1259,10 @@ const app = {
         } else {
             item.classList.add('open');
             item.classList.add(isCorrect ? 'answered-correct' : 'answered-incorrect');
-            
+
             if (isCorrect) {
                 setTimeout(() => {
-                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    this.scrollToElement(item);
                 }, 300);
             }
         }
@@ -1280,7 +1288,7 @@ const app = {
 
         if (this.isAllAccordionsOpen && correctItem) {
             setTimeout(() => {
-                correctItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                this.scrollToElement(correctItem);
             }, 300);
         }
     },
@@ -1336,12 +1344,12 @@ const app = {
     renderSidebar() {
         const container = document.getElementById('sidebar-content');
         container.innerHTML = '';
-        
+
         if(this.data.length === 0) {
              container.innerHTML = '<div style="padding: 10px; color: var(--text-muted); font-size: 14px;">該当する問題がありません。</div>';
              return;
         }
-        
+
         const groupSize = 50;
         const totalGroups = Math.ceil(this.data.length / groupSize);
 
@@ -1361,7 +1369,7 @@ const app = {
                 const item = document.createElement('div');
                 item.className = 'sidebar-item';
                 item.id = `sidebar-item-${i}`;
-                
+
                 const qId = String(this.data[i].id);
                 const isBookmarked = this.bookmarkedIds.includes(qId);
                 const icon = isBookmarked ? '★ ' : '';
@@ -1400,7 +1408,7 @@ const app = {
                     if (bOpts.includes(wordStr)) {
                         let meaningStr = Array.isArray(opt.meanings) ? opt.meanings.join(', ') : (opt.meanings || "");
                         let exampleStr = opt.example || q.example || q.sentence || q.punchline || "";
-                        
+
                         this.reviewData.push({
                             qId: String(q.id),
                             wordStr: wordStr,
@@ -1417,30 +1425,30 @@ const app = {
     renderReview() {
         const container = document.getElementById('review-list-container');
         container.innerHTML = '';
-        
+
         const pagination = document.getElementById('review-pagination');
         if (this.reviewData.length === 0) {
             container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--hover-bg); border-radius: 8px;">ブックマークされた選択肢はありません。</div>';
             pagination.style.display = 'none';
             return;
         }
-        
+
         pagination.style.display = 'flex';
         this.isReviewAccordionsOpen = false;
-        
+
         const startIdx = this.reviewCurrentPage * this.reviewPerPage;
         const endIdx = Math.min(startIdx + this.reviewPerPage, this.reviewData.length);
-        
+
         for (let i = startIdx; i < endIdx; i++) {
             const item = this.reviewData[i];
             const itemDiv = document.createElement('div');
             itemDiv.className = 'option-item';
             itemDiv.id = `review-item-${i}`;
-            
+
             let escapedWordStr = item.wordStr.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-            
+
             let isOptionBookmarked = this.bookmarkedOptions[item.qId] && this.bookmarkedOptions[item.qId].includes(item.wordStr);
-            
+
             itemDiv.innerHTML = `
                 <button class="option-button" onclick="app.handleReviewOptionClick(${i})">
                     <span id="review-star-${i}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
@@ -1462,7 +1470,7 @@ const app = {
             `;
             container.appendChild(itemDiv);
         }
-        
+
         this.updateReviewPagination();
         window.scrollTo({ top: 0, behavior: 'auto' });
     },
@@ -1490,10 +1498,10 @@ const app = {
 
     toggleReviewBookmark(event, qId, wordStr, index) {
         event.stopPropagation();
-        
+
         const starEl = document.getElementById(`review-star-${index}`);
         const isCurrentlyBookmarked = starEl.classList.contains('active');
-        
+
         if (isCurrentlyBookmarked) {
             if (this.bookmarkedOptions[qId]) {
                 const idx = this.bookmarkedOptions[qId].indexOf(wordStr);
@@ -1521,7 +1529,7 @@ const app = {
             starEl.innerText = '★';
             starEl.classList.add('active');
         }
-        
+
         this.saveBookmarks();
         this.updateBookmarkUI();
         this.renderSidebar();
@@ -1551,7 +1559,7 @@ const app = {
     updateReviewPagination() {
         const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
         document.getElementById('review-page-info').innerText = `${this.reviewCurrentPage + 1} / ${totalPages}`;
-        
+
         document.getElementById('review-btn-prev').disabled = (this.reviewCurrentPage === 0);
         document.getElementById('review-btn-next').disabled = (this.reviewCurrentPage === totalPages - 1);
     }
