@@ -250,10 +250,38 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
+            gap: 8px; /* スマホでも綺麗に並ぶように間隔を調整 */
             margin-top: 25px;
             padding-top: 15px;
             border-top: 1px dashed var(--border-color);
+            flex-wrap: wrap; /* 折り返しを許可 */
+        }
+        
+        .pagination-btn {
+            background-color: var(--btn-sec-bg);
+            color: var(--btn-sec-text);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background-color: var(--btn-sec-hover);
+        }
+        .pagination-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: default;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* サイドバー共通 */
@@ -274,7 +302,7 @@
         .right-sidebar.open { right: 0; }
 
         .sidebar-filters { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
-        .sidebar-filters select, #review-per-page { padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); width: 100%; font-family: inherit; background-color: var(--input-bg); color: var(--text-main); }
+        .sidebar-filters select, #review-per-page, #review-sort-order { padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); width: 100%; font-family: inherit; background-color: var(--input-bg); color: var(--text-main); }
         .sidebar-filters label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
 
         .sidebar details { margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
@@ -425,22 +453,25 @@
                 <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">ブックマークした選択肢一覧</div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <!-- 昇順・降順プルダウン -->
+                <select id="review-sort-order" onchange="app.changeReviewSortOrder()" style="width: auto;">
+                    <option value="asc">追加順 (古い順)</option>
+                    <option value="desc">追加順 (新しい順)</option>
+                </select>
+                <!-- 最大表示件数プルダウン -->
                 <select id="review-per-page" onchange="app.changeReviewPerPage()" style="width: auto;">
                     <option value="10">10件表示</option>
                     <option value="20">20件表示</option>
                     <option value="50">50件表示</option>
                 </select>
-                <button id="review-toggle-accordion-btn" onclick="app.toggleReviewAccordions()">アコーディオンを全開閉</button>
+                <button id="review-toggle-accordion-btn" onclick="app.toggleReviewAccordions()">解答を見る</button>
             </div>
         </div>
 
         <div id="review-list-container" class="options-list"></div>
 
-        <div class="pagination-container" id="review-pagination">
-            <button id="review-btn-prev" class="btn-secondary" onclick="app.prevReviewPage()">＜ 前へ</button>
-            <span id="review-page-info" style="font-weight: bold; color: var(--text-muted);">1 / 1</span>
-            <button id="review-btn-next" class="btn-secondary" onclick="app.nextReviewPage()">次へ ＞</button>
-        </div>
+        <!-- 空にしてJSから動的に生成する -->
+        <div class="pagination-container" id="review-pagination"></div>
     </div>
 
 </div>
@@ -480,6 +511,7 @@ const app = {
     reviewData: [],
     reviewCurrentPage: 0,
     reviewPerPage: 10,
+    reviewSortOrder: 'asc', // 追加: 復習ページの並び順（'asc' または 'desc'）
     isReviewAccordionsOpen: false,
 
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
@@ -1312,7 +1344,7 @@ const app = {
         
         this.checkTranslationVisibility();
 
-        // 全開閉時は、正解の選択肢へスクロール
+        // 全開閉時は、正解の選択肢が上部に来るようにスクロール
         if (this.isAllAccordionsOpen && correctItem) {
             setTimeout(() => {
                 this.scrollToElement(correctItem);
@@ -1446,6 +1478,12 @@ const app = {
                 }
             }
         }
+        
+        // 降順が選択されている場合は配列を反転させる
+        if (this.reviewSortOrder === 'desc') {
+            this.reviewData.reverse();
+        }
+        
         this.reviewCurrentPage = 0;
     },
 
@@ -1453,14 +1491,12 @@ const app = {
         const container = document.getElementById('review-list-container');
         container.innerHTML = '';
 
-        const pagination = document.getElementById('review-pagination');
         if (this.reviewData.length === 0) {
             container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--hover-bg); border-radius: 8px;">ブックマークされた選択肢はありません。</div>';
-            pagination.style.display = 'none';
+            document.getElementById('review-pagination').innerHTML = ''; // 空の場合はページャーを消去
             return;
         }
 
-        pagination.style.display = 'flex';
         this.isReviewAccordionsOpen = false;
 
         const startIdx = this.reviewCurrentPage * this.reviewPerPage;
@@ -1561,6 +1597,12 @@ const app = {
         this.updateBookmarkUI();
         this.renderSidebar();
     },
+    
+    changeReviewSortOrder() {
+        this.reviewSortOrder = document.getElementById('review-sort-order').value;
+        this.buildReviewData();
+        this.renderReview();
+    },
 
     changeReviewPerPage() {
         this.reviewPerPage = parseInt(document.getElementById('review-per-page').value, 10);
@@ -1568,27 +1610,52 @@ const app = {
         this.renderReview();
     },
 
-    prevReviewPage() {
-        if (this.reviewCurrentPage > 0) {
-            this.reviewCurrentPage--;
-            this.renderReview();
-        }
-    },
-
-    nextReviewPage() {
-        const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage);
-        if (this.reviewCurrentPage < totalPages - 1) {
-            this.reviewCurrentPage++;
-            this.renderReview();
-        }
-    },
-
+    // 新しいページネーション生成処理
     updateReviewPagination() {
-        const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
-        document.getElementById('review-page-info').innerText = `${this.reviewCurrentPage + 1} / ${totalPages}`;
+        const pagination = document.getElementById('review-pagination');
+        pagination.innerHTML = '';
 
-        document.getElementById('review-btn-prev').disabled = (this.reviewCurrentPage === 0);
-        document.getElementById('review-btn-next').disabled = (this.reviewCurrentPage === totalPages - 1);
+        if (this.reviewData.length === 0) return;
+
+        const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
+
+        // ボタン生成のヘルパー関数
+        const createBtn = (text, pageIdx, disabled = false, active = false) => {
+            const btn = document.createElement('button');
+            btn.className = 'pagination-btn';
+            if (active) btn.classList.add('active');
+            btn.innerText = text;
+            btn.disabled = disabled;
+            
+            if (!disabled && !active) {
+                btn.onclick = () => {
+                    this.reviewCurrentPage = pageIdx;
+                    this.renderReview();
+                };
+            }
+            return btn;
+        };
+
+        // 「一番前」ボタン
+        pagination.appendChild(createBtn('一番前', 0, this.reviewCurrentPage === 0));
+
+        // 中心となるページ番号を決定（最大5つ表示）
+        const maxPageBtns = 5;
+        let startPage = Math.max(0, this.reviewCurrentPage - 2);
+        let endPage = Math.min(totalPages - 1, startPage + maxPageBtns - 1);
+
+        // 末尾に近い場合、開始ページを前方にずらして5つ確保する
+        if (endPage - startPage + 1 < maxPageBtns) {
+            startPage = Math.max(0, endPage - maxPageBtns + 1);
+        }
+
+        // ページ番号ボタン
+        for (let i = startPage; i <= endPage; i++) {
+            pagination.appendChild(createBtn(String(i + 1), i, false, i === this.reviewCurrentPage));
+        }
+
+        // 「一番後ろ」ボタン
+        pagination.appendChild(createBtn('一番後ろ', totalPages - 1, this.reviewCurrentPage === totalPages - 1));
     }
 };
 
