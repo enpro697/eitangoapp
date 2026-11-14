@@ -250,61 +250,52 @@
             display: flex;
             justify-content: flex-end; /* 右寄せ */
             align-items: center;
-            gap: 8px; 
+            gap: 8px;
             margin-top: 25px;
             padding-top: 15px;
             border-top: 1px dashed var(--border-color);
-            flex-wrap: wrap; /* 折り返しを許可 */
+            flex-wrap: wrap; /* 折り返し許可 */
         }
-        
+
         .pagination-numbers {
             display: flex;
-            gap: 8px;
+            gap: 5px;
             flex-wrap: wrap;
-            justify-content: flex-end;
-            order: 2; /* 中央に配置 */
+            align-items: center;
         }
 
-        /* ボタンの配置順序（デフォルト右手モード: 前へ [数字] 次へ） */
-        .prev-btn { order: 1; }
-        .next-btn { order: 3; }
+        .page-btn-prev { order: 1; user-select: none; touch-action: pan-y; }
+        .pagination-numbers { order: 2; }
+        .page-btn-next { order: 3; user-select: none; touch-action: pan-y; }
 
-        /* 左手モードの時（><）は「次へ [数字] 前へ」に順序を入れ替える */
-        body.nav-swapped .prev-btn { order: 3; }
-        body.nav-swapped .next-btn { order: 1; }
-        
+        body.nav-swapped .page-btn-prev { order: 3; }
+        body.nav-swapped .page-btn-next { order: 1; }
+
         .pagination-btn {
-            background-color: var(--btn-sec-bg);
-            color: var(--btn-sec-text);
+            background-color: var(--card-bg);
+            color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
             font-weight: bold;
-            min-width: 40px;
+            min-width: 36px;
             text-align: center;
             transition: var(--transition);
         }
-        .pagination-btn:hover:not(:disabled) {
-            background-color: var(--btn-sec-hover);
+        .pagination-btn:hover:not(:disabled):not(.active) {
+            background-color: var(--hover-bg);
         }
         .pagination-btn.active {
             background-color: var(--primary-color);
             color: white;
-            border: none;
+            border-color: var(--primary-color);
             cursor: default;
         }
         .pagination-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
-        }
-        .pagination-ellipsis {
-            color: var(--text-muted);
-            font-weight: bold;
-            padding: 0 4px;
-            display: flex;
-            align-items: end;
         }
 
         /* サイドバー共通 */
@@ -493,7 +484,7 @@
 
         <div id="review-list-container" class="options-list"></div>
 
-        <!-- ページネーション（JSから動的生成） -->
+        <!-- 空にしてJSから動的に生成する本格的なページネーション -->
         <div class="pagination-container" id="review-pagination"></div>
     </div>
 
@@ -661,59 +652,54 @@ const app = {
             document.body.classList.remove('nav-swapped');
         }
         if (navigator.vibrate) navigator.vibrate(50);
-        
-        // 復習ページにいる場合はページネーションも再描画して矢印の順序を反映
-        if (!document.getElementById('review-view').classList.contains('hidden')) {
-            this.updateReviewPagination();
-        }
+    },
+
+    // イベントリスナーを付与するヘルパー関数
+    attachNavSwapListeners(btn) {
+        btn.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', e.target.id);
+            e.target.style.opacity = '0.5';
+        });
+        btn.addEventListener('dragend', (e) => {
+            e.target.style.opacity = '1';
+        });
+        btn.addEventListener('dragover', (e) => {
+            e.preventDefault(); 
+        });
+        btn.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const draggedId = e.dataTransfer.getData('text/plain');
+            const targetBtn = e.target.closest('button');
+            if (targetBtn && draggedId && draggedId !== targetBtn.id) {
+                this.toggleNavSwap();
+            }
+        });
+
+        btn.addEventListener('touchstart', (e) => {
+            this.longPressTimer = setTimeout(() => {
+                this.toggleNavSwap();
+                this.longPressTimer = null;
+            }, 600); 
+        }, { passive: true });
+
+        const cancelLongPress = () => {
+            if (this.longPressTimer) {
+                clearTimeout(this.longPressTimer);
+                this.longPressTimer = null;
+            }
+        };
+
+        btn.addEventListener('touchend', cancelLongPress);
+        btn.addEventListener('touchmove', cancelLongPress, { passive: true });
+        btn.addEventListener('touchcancel', cancelLongPress);
+        btn.addEventListener('contextmenu', (e) => e.preventDefault()); 
     },
 
     setupDragAndLongPress() {
         const prevBtn = document.getElementById('btn-prev');
         const nextBtn = document.getElementById('btn-next');
-        const btns = [prevBtn, nextBtn];
-
-        btns.forEach(btn => {
-            btn.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', e.target.id);
-                e.target.style.opacity = '0.5';
-            });
-            btn.addEventListener('dragend', (e) => {
-                e.target.style.opacity = '1';
-            });
-            btn.addEventListener('dragover', (e) => {
-                e.preventDefault(); 
-            });
-            btn.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const draggedId = e.dataTransfer.getData('text/plain');
-                const targetBtn = e.target.closest('.arrow-btn');
-                if (targetBtn && draggedId && draggedId !== targetBtn.id) {
-                    this.toggleNavSwap();
-                }
-            });
-        });
-
-        btns.forEach(btn => {
-            btn.addEventListener('touchstart', (e) => {
-                this.longPressTimer = setTimeout(() => {
-                    this.toggleNavSwap();
-                    this.longPressTimer = null;
-                }, 600); 
-            }, { passive: true });
-
-            const cancelLongPress = () => {
-                if (this.longPressTimer) {
-                    clearTimeout(this.longPressTimer);
-                    this.longPressTimer = null;
-                }
-            };
-
-            btn.addEventListener('touchend', cancelLongPress);
-            btn.addEventListener('touchmove', cancelLongPress, { passive: true });
-            btn.addEventListener('touchcancel', cancelLongPress);
-            btn.addEventListener('contextmenu', (e) => e.preventDefault()); 
-        });
+        if (prevBtn) this.attachNavSwapListeners(prevBtn);
+        if (nextBtn) this.attachNavSwapListeners(nextBtn);
     },
 
     async toggleLogin() {
@@ -759,8 +745,8 @@ const app = {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                     }
+                    return;
                 }
-                return;
             }
 
             if (isQuizView) {
@@ -803,27 +789,41 @@ const app = {
                     }
                     return;
                 }
-                if (e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay')) return;
-
+            }
+            
+            // 共通の画面端タップ処理（アコーディオン等をタップしていない場合のみ実行される）
+            const isSidebarAction = e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay');
+            if (!isSidebarAction) {
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
 
+                const goPrev = () => {
+                    if (isQuizView) this.prevPage();
+                    if (isReviewView) this.prevReviewPage();
+                };
+                const goNext = () => {
+                    if (isQuizView) this.nextPage();
+                    if (isReviewView) this.nextReviewPage();
+                };
+
+                // 背景タップ時（appElの外側、またはappEl自体）
                 if (!appEl.contains(e.target) || e.target === appEl) {
                     if (clickX < screenWidth / 2) {
-                        this.isNavSwapped ? this.nextPage() : this.prevPage();
+                        this.isNavSwapped ? goNext() : goPrev();
                     } else {
-                        this.isNavSwapped ? this.prevPage() : this.nextPage();
+                        this.isNavSwapped ? goPrev() : goNext();
                     }
                     return;
                 }
 
+                // 画面端タップ時
                 if (clickX < screenWidth * 0.15) {
-                    this.isNavSwapped ? this.nextPage() : this.prevPage();
+                    this.isNavSwapped ? goNext() : goPrev();
                     return;
                 }
                 if (clickX > screenWidth * 0.85) {
-                    this.isNavSwapped ? this.prevPage() : this.nextPage();
+                    this.isNavSwapped ? goPrev() : goNext();
                     return;
                 }
             }
@@ -1521,7 +1521,7 @@ const app = {
 
         if (this.reviewData.length === 0) {
             container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--hover-bg); border-radius: 8px;">ブックマークされた選択肢はありません。</div>';
-            document.getElementById('review-pagination').innerHTML = '';
+            document.getElementById('review-pagination').innerHTML = ''; // 空の場合はページャーを消去
             return;
         }
 
@@ -1625,7 +1625,7 @@ const app = {
         this.updateBookmarkUI();
         this.renderSidebar();
     },
-    
+
     changeReviewSortOrder() {
         this.reviewSortOrder = document.getElementById('review-sort-order').value;
         this.buildReviewData();
@@ -1638,6 +1638,22 @@ const app = {
         this.renderReview();
     },
 
+    prevReviewPage() {
+        if (this.reviewCurrentPage > 0) {
+            this.reviewCurrentPage--;
+            this.renderReview();
+        }
+    },
+
+    nextReviewPage() {
+        const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage);
+        if (this.reviewCurrentPage < totalPages - 1) {
+            this.reviewCurrentPage++;
+            this.renderReview();
+        }
+    },
+
+    // 複雑なページネーションを動的に生成する処理
     updateReviewPagination() {
         const pagination = document.getElementById('review-pagination');
         pagination.innerHTML = '';
@@ -1646,15 +1662,31 @@ const app = {
 
         const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
 
-        // ボタン生成のヘルパー関数
-        const createBtn = (text, pageIdx, disabled = false, active = false, extraClass = '') => {
+        // ボタンを生成するヘルパー関数
+        const createBtn = (text, pageIdx, disabled = false, active = false, isNav = false, navType = '') => {
+            if (text === '...') {
+                const span = document.createElement('span');
+                span.innerText = '...';
+                span.style.padding = '8px 4px';
+                span.style.color = 'var(--text-muted)';
+                return span;
+            }
+
             const btn = document.createElement('button');
-            btn.className = `pagination-btn ${extraClass}`;
+            btn.className = 'pagination-btn';
             if (active) btn.classList.add('active');
+            
+            if (isNav) {
+                btn.classList.add(navType); // 'page-btn-prev' か 'page-btn-next'
+                btn.draggable = true;       // ドラッグ対応
+                btn.id = `review-btn-${navType === 'page-btn-prev' ? 'prev' : 'next'}`;
+                this.attachNavSwapListeners(btn); // 長押し・ドラッグでの左右入れ替えを適用
+            }
+            
             btn.innerText = text;
             btn.disabled = disabled;
             
-            if (!disabled && !active && pageIdx !== null) {
+            if (!disabled && !active) {
                 btn.onclick = () => {
                     this.reviewCurrentPage = pageIdx;
                     this.renderReview();
@@ -1664,55 +1696,49 @@ const app = {
         };
 
         // 「前へ」ボタン
-        pagination.appendChild(createBtn('前へ', this.reviewCurrentPage - 1, this.reviewCurrentPage === 0, false, 'prev-btn'));
+        const prevBtn = createBtn('前へ', this.reviewCurrentPage - 1, this.reviewCurrentPage === 0, false, true, 'page-btn-prev');
+        pagination.appendChild(prevBtn);
 
-        // 数字部分のコンテナ
-        const numContainer = document.createElement('div');
-        numContainer.className = 'pagination-numbers';
+        // 数字ボタン群をまとめるコンテナ
+        const numbersContainer = document.createElement('div');
+        numbersContainer.className = 'pagination-numbers';
 
-        let startPage = Math.max(0, this.reviewCurrentPage - 1);
-        let endPage = Math.min(totalPages - 1, this.reviewCurrentPage + 1);
+        const currentPage = this.reviewCurrentPage;
+        
+        // 中央に表示するページボタンの数を最大5つとする
+        let startPage = Math.max(0, currentPage - 1);
+        let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-        // 先頭付近の場合、後ろを多めに表示
-        if (this.reviewCurrentPage <= 2) {
-            endPage = Math.min(totalPages - 1, 3);
-        }
-        // 末尾付近の場合、前を多めに表示
-        if (this.reviewCurrentPage >= totalPages - 3) {
-            startPage = Math.max(0, totalPages - 4);
-        }
+        // 先頭・末尾の表示バランス調整
+        if (currentPage === 0) endPage = Math.min(totalPages - 1, 2);
+        if (currentPage === totalPages - 1) startPage = Math.max(0, totalPages - 3);
 
-        // 先頭（1）と省略記号
+        // 1ページ目と省略記号の処理
         if (startPage > 0) {
-            numContainer.appendChild(createBtn('1', 0));
+            numbersContainer.appendChild(createBtn('1', 0, false, currentPage === 0));
             if (startPage > 1) {
-                const ellipsis = document.createElement('span');
-                ellipsis.className = 'pagination-ellipsis';
-                ellipsis.innerText = '…';
-                numContainer.appendChild(ellipsis);
+                numbersContainer.appendChild(createBtn('...', null));
             }
         }
 
         // 中央のページ番号
         for (let i = startPage; i <= endPage; i++) {
-            numContainer.appendChild(createBtn(String(i + 1), i, false, i === this.reviewCurrentPage));
+            numbersContainer.appendChild(createBtn(String(i + 1), i, false, i === currentPage));
         }
 
-        // 末尾と省略記号
+        // 最後のページと省略記号の処理
         if (endPage < totalPages - 1) {
             if (endPage < totalPages - 2) {
-                const ellipsis = document.createElement('span');
-                ellipsis.className = 'pagination-ellipsis';
-                ellipsis.innerText = '…';
-                numContainer.appendChild(ellipsis);
+                numbersContainer.appendChild(createBtn('...', null));
             }
-            numContainer.appendChild(createBtn(String(totalPages), totalPages - 1));
+            numbersContainer.appendChild(createBtn(String(totalPages), totalPages - 1, false, currentPage === totalPages - 1));
         }
 
-        pagination.appendChild(numContainer);
+        pagination.appendChild(numbersContainer);
 
         // 「次へ」ボタン
-        pagination.appendChild(createBtn('次へ', this.reviewCurrentPage + 1, this.reviewCurrentPage === totalPages - 1, false, 'next-btn'));
+        const nextBtn = createBtn('次へ', this.reviewCurrentPage + 1, this.reviewCurrentPage === totalPages - 1, false, true, 'page-btn-next');
+        pagination.appendChild(nextBtn);
     }
 };
 
