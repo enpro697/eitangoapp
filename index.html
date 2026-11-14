@@ -1637,7 +1637,7 @@ const app = {
         };
 
         // 「一番前」ボタン
-        pagination.appendChild(createBtn('一番前', 0, this.reviewCurrentPage === 0));
+        pagination.appendChild(createBtn('<<', 0, this.reviewCurrentPage === 0));
 
         // 中心となるページ番号を決定（最大5つ表示）
         const maxPageBtns = 5;
@@ -1655,7 +1655,7 @@ const app = {
         }
 
         // 「一番後ろ」ボタン
-        pagination.appendChild(createBtn('一番後ろ', totalPages - 1, this.reviewCurrentPage === totalPages - 1));
+        pagination.appendChild(createBtn('>>', totalPages - 1, this.reviewCurrentPage === totalPages - 1));
     }
 };
 
