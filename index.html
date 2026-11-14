@@ -192,7 +192,6 @@
             transition: var(--transition);
             display: inline-block;
             user-select: none;
-            /* デフォルト（右手モード >< ではない時）は右側に配置 */
             order: 2;
             margin-left: auto;
             margin-right: 15px;
@@ -250,26 +249,12 @@
             display: flex;
             justify-content: flex-end; /* 右寄せ */
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             margin-top: 25px;
             padding-top: 15px;
             border-top: 1px dashed var(--border-color);
-            flex-wrap: wrap; /* 折り返し許可 */
+            flex-wrap: wrap; 
         }
-
-        .pagination-numbers {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .page-btn-prev { order: 1; user-select: none; touch-action: pan-y; }
-        .pagination-numbers { order: 2; }
-        .page-btn-next { order: 3; user-select: none; touch-action: pan-y; }
-
-        body.nav-swapped .page-btn-prev { order: 3; }
-        body.nav-swapped .page-btn-next { order: 1; }
 
         .pagination-btn {
             background-color: var(--card-bg);
@@ -292,10 +277,6 @@
             color: white;
             border-color: var(--primary-color);
             cursor: default;
-        }
-        .pagination-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
         }
 
         /* サイドバー共通 */
@@ -484,7 +465,7 @@
 
         <div id="review-list-container" class="options-list"></div>
 
-        <!-- 空にしてJSから動的に生成する本格的なページネーション -->
+        <!-- ページネーションをJSから生成 -->
         <div class="pagination-container" id="review-pagination"></div>
     </div>
 
@@ -537,7 +518,6 @@ const app = {
         this.data = [];
         this.bookmarkedOptions = {};
 
-        // データが読み込まれる前にローカルのブックマーク情報を同期的に復元しておく
         this.loadFromLocalStorage();
 
         const jsonInput = document.getElementById('json-input');
@@ -589,7 +569,6 @@ const app = {
         this.setupGlobalClickListeners();
     },
 
-    // 指定した要素が画面の上部1/3くらいに来るようにスクロールする関数
     scrollToElement(el) {
         if (!el) return;
         const offset = window.innerHeight / 3;
@@ -651,55 +630,61 @@ const app = {
             container.classList.remove('swapped');
             document.body.classList.remove('nav-swapped');
         }
+        
+        // 復習ページを再描画してページャーの並び順も更新する
+        if (!document.getElementById('review-view').classList.contains('hidden')) {
+            this.updateReviewPagination();
+        }
+
         if (navigator.vibrate) navigator.vibrate(50);
-    },
-
-    // イベントリスナーを付与するヘルパー関数
-    attachNavSwapListeners(btn) {
-        btn.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', e.target.id);
-            e.target.style.opacity = '0.5';
-        });
-        btn.addEventListener('dragend', (e) => {
-            e.target.style.opacity = '1';
-        });
-        btn.addEventListener('dragover', (e) => {
-            e.preventDefault(); 
-        });
-        btn.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const draggedId = e.dataTransfer.getData('text/plain');
-            const targetBtn = e.target.closest('button');
-            if (targetBtn && draggedId && draggedId !== targetBtn.id) {
-                this.toggleNavSwap();
-            }
-        });
-
-        btn.addEventListener('touchstart', (e) => {
-            this.longPressTimer = setTimeout(() => {
-                this.toggleNavSwap();
-                this.longPressTimer = null;
-            }, 600); 
-        }, { passive: true });
-
-        const cancelLongPress = () => {
-            if (this.longPressTimer) {
-                clearTimeout(this.longPressTimer);
-                this.longPressTimer = null;
-            }
-        };
-
-        btn.addEventListener('touchend', cancelLongPress);
-        btn.addEventListener('touchmove', cancelLongPress, { passive: true });
-        btn.addEventListener('touchcancel', cancelLongPress);
-        btn.addEventListener('contextmenu', (e) => e.preventDefault()); 
     },
 
     setupDragAndLongPress() {
         const prevBtn = document.getElementById('btn-prev');
         const nextBtn = document.getElementById('btn-next');
-        if (prevBtn) this.attachNavSwapListeners(prevBtn);
-        if (nextBtn) this.attachNavSwapListeners(nextBtn);
+        
+        const attachTo = (btn) => {
+            if (!btn) return;
+            btn.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+                e.target.style.opacity = '0.5';
+            });
+            btn.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+            btn.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+            });
+            btn.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId && draggedId !== e.target.id) {
+                    this.toggleNavSwap();
+                }
+            });
+
+            btn.addEventListener('touchstart', (e) => {
+                this.longPressTimer = setTimeout(() => {
+                    this.toggleNavSwap();
+                    this.longPressTimer = null;
+                }, 600); 
+            }, { passive: true });
+
+            const cancelLongPress = () => {
+                if (this.longPressTimer) {
+                    clearTimeout(this.longPressTimer);
+                    this.longPressTimer = null;
+                }
+            };
+
+            btn.addEventListener('touchend', cancelLongPress);
+            btn.addEventListener('touchmove', cancelLongPress, { passive: true });
+            btn.addEventListener('touchcancel', cancelLongPress);
+            btn.addEventListener('contextmenu', (e) => e.preventDefault()); 
+        };
+
+        attachTo(prevBtn);
+        attachTo(nextBtn);
     },
 
     async toggleLogin() {
@@ -989,7 +974,7 @@ const app = {
             await navigator.clipboard.writeText(ta.value);
             alert("JSONデータをクリップボードにコピーしました！");
         } catch (err) {
-            alert("コピーに失敗しました。手動でコピーしてください。");
+            alert("コピーに失敗しました。手手動でコピーしてください。");
         }
     },
 
@@ -1225,7 +1210,6 @@ const app = {
     },
 
     switchView(viewName) {
-        // エディタ画面からの遷移かどうかを判定
         const isFromEditor = !document.getElementById('editor-view').classList.contains('hidden');
 
         document.getElementById('editor-view').classList.add('hidden');
@@ -1234,10 +1218,8 @@ const app = {
         document.getElementById(`${viewName}-view`).classList.remove('hidden');
 
         if (viewName === 'quiz' && this.data.length > 0) {
-            // エディタ画面からの遷移時のみ、一番大きいブックマーク済みの設問番号に移動する
             if (isFromEditor) {
                 let highestIndex = 0;
-                // 後ろから検索して最初に見つかったブックマーク済みのインデックスを取得
                 for (let i = this.data.length - 1; i >= 0; i--) {
                     if (this.bookmarkedIds.includes(String(this.data[i].id))) {
                         highestIndex = i;
@@ -1341,7 +1323,6 @@ const app = {
         
         this.checkTranslationVisibility();
 
-        // 正解した場合は日本語訳（または問題文）へスクロール
         if (item.classList.contains('open') && isCorrect) {
             setTimeout(() => {
                 const transEl = document.getElementById('question-translation');
@@ -1372,7 +1353,6 @@ const app = {
         
         this.checkTranslationVisibility();
 
-        // 全開閉時は、正解の選択肢が上部に来るようにスクロール
         if (this.isAllAccordionsOpen && correctItem) {
             setTimeout(() => {
                 this.scrollToElement(correctItem);
@@ -1507,7 +1487,6 @@ const app = {
             }
         }
         
-        // 降順が選択されている場合は配列を反転させる
         if (this.reviewSortOrder === 'desc') {
             this.reviewData.reverse();
         }
@@ -1521,7 +1500,7 @@ const app = {
 
         if (this.reviewData.length === 0) {
             container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--hover-bg); border-radius: 8px;">ブックマークされた選択肢はありません。</div>';
-            document.getElementById('review-pagination').innerHTML = ''; // 空の場合はページャーを消去
+            document.getElementById('review-pagination').innerHTML = ''; 
             return;
         }
 
@@ -1667,8 +1646,9 @@ const app = {
             if (text === '...') {
                 const span = document.createElement('span');
                 span.innerText = '...';
-                span.style.padding = '8px 4px';
+                span.style.padding = '6px 2px';
                 span.style.color = 'var(--text-muted)';
+                span.style.userSelect = 'none';
                 return span;
             }
 
@@ -1678,9 +1658,40 @@ const app = {
             
             if (isNav) {
                 btn.classList.add(navType); // 'page-btn-prev' か 'page-btn-next'
-                btn.draggable = true;       // ドラッグ対応
                 btn.id = `review-btn-${navType === 'page-btn-prev' ? 'prev' : 'next'}`;
-                this.attachNavSwapListeners(btn); // 長押し・ドラッグでの左右入れ替えを適用
+                
+                // 長押し・ドラッグで左右モードを切り替えるリスナーを付与
+                btn.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.id);
+                    e.target.style.opacity = '0.5';
+                });
+                btn.addEventListener('dragend', (e) => {
+                    e.target.style.opacity = '1';
+                });
+                btn.addEventListener('dragover', (e) => e.preventDefault());
+                btn.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    if (draggedId && draggedId !== e.target.id) {
+                        this.toggleNavSwap();
+                    }
+                });
+                btn.addEventListener('touchstart', (e) => {
+                    this.longPressTimer = setTimeout(() => {
+                        this.toggleNavSwap();
+                        this.longPressTimer = null;
+                    }, 600); 
+                }, { passive: true });
+                const cancelLongPress = () => {
+                    if (this.longPressTimer) {
+                        clearTimeout(this.longPressTimer);
+                        this.longPressTimer = null;
+                    }
+                };
+                btn.addEventListener('touchend', cancelLongPress);
+                btn.addEventListener('touchmove', cancelLongPress, { passive: true });
+                btn.addEventListener('touchcancel', cancelLongPress);
+                btn.addEventListener('contextmenu', (e) => e.preventDefault()); 
             }
             
             btn.innerText = text;
