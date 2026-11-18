@@ -192,7 +192,6 @@
             transition: var(--transition);
             display: inline-block;
             user-select: none;
-            /* デフォルト（右手モード >< ではない時）は右側に配置 */
             order: 2;
             margin-left: auto;
             margin-right: 15px;
@@ -245,7 +244,7 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* 復習ページの新しい上段・下段レイアウト */
+        /* 復習ページ: コントロールレイアウト */
         .review-controls-top {
             display: flex;
             justify-content: space-between;
@@ -263,10 +262,10 @@
             margin-left: auto;
         }
 
-        .review-search-container {
+        /* 検索とプルダウンのレイアウト */
+        .search-group {
             display: flex;
             gap: 5px;
-            margin-bottom: 20px;
             width: 100%;
         }
         .search-input-wrapper {
@@ -294,6 +293,14 @@
         }
         #review-search-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
         
+        .review-filters-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #review-difficulty-filter,
         #review-sort-order,
         #review-per-page {
             padding: 8px 10px;
@@ -309,7 +316,7 @@
         /* ページネーション（復習ページ用） */
         .pagination-container {
             display: flex;
-            justify-content: space-between; /* 左右に ＜ と ＞ を配置 */
+            justify-content: space-between;
             align-items: center;
             margin-top: 25px;
             padding-top: 15px;
@@ -317,7 +324,6 @@
             transition: flex-direction 0.3s ease; 
         }
         
-        /* ページネーション反転用 */
         .pagination-container.swapped {
             flex-direction: row-reverse; 
         }
@@ -573,29 +579,25 @@
             </div>
         </div>
 
-        <!-- 検索・絞り込みバー (縦並び) -->
-        <div class="review-search-container">
-            <!-- プルダウン行 -->
-            <div class="review-filters-group">
-                <select id="review-per-page" onchange="app.changeReviewPerPage()">
-                    <option value="10">10件表示</option>
-                    <option value="20">20件表示</option>
-                    <option value="50">50件表示</option>
-                </select>
-                <select id="review-sort-order" onchange="app.changeReviewSortOrder()">
-                    <option value="asc">古い順</option>
-                    <option value="desc">新しい順</option>
-                </select>
-            </div>
+        <div class="review-filters-group" style="margin-bottom: 10px;">
+            <select id="review-per-page" onchange="app.changeReviewPerPage()">
+                <option value="10">10件表示</option>
+                <option value="20">20件表示</option>
+                <option value="50">50件表示</option>
+            </select>
+            <select id="review-sort-order" onchange="app.changeReviewSortOrder()">
+                <option value="asc">古い順</option>
+                <option value="desc">新しい順</option>
+            </select>
+        </div>
 
-            <!-- 検索入力欄 ＋ ボタン行 -->
-            <div class="search-group">
-                <div class="search-input-wrapper">
-                    <span>🔍</span>
-                    <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
-                </div>
-                <button onclick="app.applyReviewFilters()" style="padding: 8px 15px; font-size: 14px; white-space: nowrap;">検索</button>
+        <!-- 検索入力欄 ＋ ボタン行 (下段に配置) -->
+        <div class="search-group" style="margin-bottom: 20px;">
+            <div class="search-input-wrapper">
+                <span>🔍</span>
+                <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
             </div>
+            <button onclick="app.applyReviewFilters()" style="padding: 8px 15px; font-size: 14px; white-space: nowrap;">検索</button>
         </div>
 
         <div id="review-list-container" class="options-list"></div>
@@ -785,9 +787,8 @@ const app = {
 
     attachNavSwapListeners(btn) {
         if (!btn) return;
-        btn.draggable = true;
         btn.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', 'nav-swap');
+            e.dataTransfer.setData('text/plain', e.target.id);
             e.target.style.opacity = '0.5';
         });
         btn.addEventListener('dragend', (e) => {
@@ -798,33 +799,8 @@ const app = {
         });
         btn.addEventListener('drop', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-            if (e.dataTransfer.getData('text/plain') === 'nav-swap') {
-                this.toggleNavSwap();
-            }
-        });
-
-        // スマホ用：長押しではなく「ボタンを押したまま横にスワイプ」で切り替える
-        let startX = 0;
-        let startY = 0;
-        let isSwiped = false;
-        
-        btn.addEventListener('touchstart', (e) => {
-            startX = e.changedTouches[0].clientX;
-            startY = e.changedTouches[0].clientY;
-            isSwiped = false;
-        }, { passive: true });
-        
-        btn.addEventListener('touchmove', (e) => {
-            const curX = e.changedTouches[0].clientX;
-            const curY = e.changedTouches[0].clientY;
-            if (Math.abs(curX - startX) > 30 && Math.abs(curY - startY) < 40) {
-                isSwiped = true;
-            }
-        }, { passive: true });
-        
-        btn.addEventListener('touchend', (e) => {
-            if (isSwiped) {
+            const draggedId = e.dataTransfer.getData('text/plain');
+            if (draggedId && draggedId !== e.target.id) {
                 this.toggleNavSwap();
             }
         });
@@ -835,21 +811,6 @@ const app = {
         const nextBtn = document.getElementById('btn-next');
         this.attachNavSwapListeners(prevBtn);
         this.attachNavSwapListeners(nextBtn);
-        
-        // コンテナへのドロップも許可する
-        const containers = ['arrow-nav-container', 'review-pagination'];
-        containers.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('dragover', e => e.preventDefault());
-                el.addEventListener('drop', e => {
-                    e.preventDefault();
-                    if (e.dataTransfer.getData('text/plain') === 'nav-swap') {
-                        this.toggleNavSwap();
-                    }
-                });
-            }
-        });
     },
 
     async toggleLogin() {
