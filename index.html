@@ -353,6 +353,22 @@
             border-color: var(--primary-color);
             cursor: default;
         }
+        
+        /* カスタムモーダル */
+        #jump-modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 101;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        }
 
         /* サイドバー共通 */
         .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; visibility: hidden; transition: var(--transition); }
@@ -432,7 +448,7 @@
         </select>
     </div>
     
-    <!-- 追加: 難易度フィルター（復習ページ用） -->
+    <!-- 難易度フィルター（復習ページ用） -->
     <div class="sidebar-filters" id="review-settings-group" style="display: none; border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
         <label style="font-weight: bold; margin-bottom: 5px; display: block;">難易度 (復習用)</label>
         <select id="review-difficulty-filter" onchange="app.applyReviewFilters()">
@@ -443,6 +459,18 @@
             <option value="4">4</option>
             <option value="5">5</option>
         </select>
+    </div>
+</div>
+
+<!-- ページジャンプ用カスタムモーダル -->
+<div class="sidebar-overlay" id="jump-overlay" onclick="app.closeJumpModal()"></div>
+<div id="jump-modal">
+    <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px;">ページを指定する</h3>
+    <p id="jump-modal-desc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;"></p>
+    <input type="number" id="jump-input" inputmode="numeric" style="width: 100%; padding: 10px; box-sizing: border-box; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 16px; text-align: center; background-color: var(--input-bg); color: var(--text-main);">
+    <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn-secondary" onclick="app.closeJumpModal()" style="flex: 1;">キャンセル</button>
+        <button onclick="app.executeJump()" style="flex: 1;">移動</button>
     </div>
 </div>
 
@@ -528,7 +556,7 @@
     <div id="review-view" class="view hidden">
         <!-- 上段：戻る ＋ 詳細設定 -->
         <div class="top-nav-bar" style="margin-bottom: 5px;">
-            <a class="nav-link" onclick="app.switchView('quiz')">← 設问ページに戻る</a>
+            <a class="nav-link" onclick="app.switchView('quiz')">← 設問ページに戻る</a>
             
             <button onclick="app.toggleSettings(true)" class="btn-secondary" style="font-weight: normal; font-size: 13px; padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px;">
                 ⚙️ 詳細設定
@@ -548,18 +576,16 @@
         <!-- 検索・絞り込みバー (縦並び) -->
         <div class="review-search-container">
             <!-- プルダウン行 -->
-            <div class="review-controls-top" style="margin-bottom: 0;">
-                <div class="review-controls-left">
-                    <select id="review-per-page" onchange="app.changeReviewPerPage()">
-                        <option value="10">10件表示</option>
-                        <option value="20">20件表示</option>
-                        <option value="50">50件表示</option>
-                    </select>
-                    <select id="review-sort-order" onchange="app.changeReviewSortOrder()">
-                        <option value="asc">古い順</option>
-                        <option value="desc">新しい順</option>
-                    </select>
-                </div>
+            <div class="review-filters-group">
+                <select id="review-per-page" onchange="app.changeReviewPerPage()">
+                    <option value="10">10件表示</option>
+                    <option value="20">20件表示</option>
+                    <option value="50">50件表示</option>
+                </select>
+                <select id="review-sort-order" onchange="app.changeReviewSortOrder()">
+                    <option value="asc">古い順</option>
+                    <option value="desc">新しい順</option>
+                </select>
             </div>
 
             <!-- 検索入力欄 ＋ ボタン行 -->
@@ -579,7 +605,7 @@
         
         <!-- ジャンプ機能ボタン -->
         <div style="text-align: center; margin-top: 15px;">
-            <a id="review-jump-link" class="nav-link" style="font-weight: normal; font-size: 14px; cursor: pointer; color: var(--text-muted);" onclick="app.jumpToReviewPage()">
+            <a id="review-jump-link" class="nav-link" style="font-weight: normal; font-size: 14px; cursor: pointer; color: var(--text-muted);" onclick="app.openJumpModal()">
                 ページを指定する
             </a>
         </div>
@@ -622,7 +648,7 @@ const app = {
     reviewPerPage: 10,
     reviewSortOrder: 'asc',
     isReviewAccordionsOpen: false,
-    lastReviewTopItem: null,
+    lastReviewTopItem: null, 
 
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
@@ -759,23 +785,46 @@ const app = {
 
     attachNavSwapListeners(btn) {
         if (!btn) return;
+        btn.draggable = true;
         btn.addEventListener('dragstart', (e) => {
-            const targetBtn = e.target.closest('button');
-            e.dataTransfer.setData('text/plain', targetBtn.id);
-            targetBtn.style.opacity = '0.5';
+            e.dataTransfer.setData('text/plain', 'nav-swap');
+            e.target.style.opacity = '0.5';
         });
         btn.addEventListener('dragend', (e) => {
-            const targetBtn = e.target.closest('button');
-            if (targetBtn) targetBtn.style.opacity = '1';
+            e.target.style.opacity = '1';
         });
         btn.addEventListener('dragover', (e) => {
             e.preventDefault(); 
         });
         btn.addEventListener('drop', (e) => {
             e.preventDefault();
-            const draggedId = e.dataTransfer.getData('text/plain');
-            const targetBtn = e.target.closest('button');
-            if (targetBtn && draggedId && draggedId !== targetBtn.id) {
+            e.stopPropagation();
+            if (e.dataTransfer.getData('text/plain') === 'nav-swap') {
+                this.toggleNavSwap();
+            }
+        });
+
+        // スマホ用：長押しではなく「ボタンを押したまま横にスワイプ」で切り替える
+        let startX = 0;
+        let startY = 0;
+        let isSwiped = false;
+        
+        btn.addEventListener('touchstart', (e) => {
+            startX = e.changedTouches[0].clientX;
+            startY = e.changedTouches[0].clientY;
+            isSwiped = false;
+        }, { passive: true });
+        
+        btn.addEventListener('touchmove', (e) => {
+            const curX = e.changedTouches[0].clientX;
+            const curY = e.changedTouches[0].clientY;
+            if (Math.abs(curX - startX) > 30 && Math.abs(curY - startY) < 40) {
+                isSwiped = true;
+            }
+        }, { passive: true });
+        
+        btn.addEventListener('touchend', (e) => {
+            if (isSwiped) {
                 this.toggleNavSwap();
             }
         });
@@ -786,6 +835,21 @@ const app = {
         const nextBtn = document.getElementById('btn-next');
         this.attachNavSwapListeners(prevBtn);
         this.attachNavSwapListeners(nextBtn);
+        
+        // コンテナへのドロップも許可する
+        const containers = ['arrow-nav-container', 'review-pagination'];
+        containers.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('dragover', e => e.preventDefault());
+                el.addEventListener('drop', e => {
+                    e.preventDefault();
+                    if (e.dataTransfer.getData('text/plain') === 'nav-swap') {
+                        this.toggleNavSwap();
+                    }
+                });
+            }
+        });
     },
 
     async toggleLogin() {
@@ -806,6 +870,9 @@ const app = {
 
             if (!isQuizView && !isReviewView) return;
             if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select') || e.target.closest('input')) return;
+
+            // モーダルの内側なら無視
+            if (e.target.closest('#jump-modal')) return;
 
             if (isReviewView) {
                 const accordionBody = e.target.closest('.accordion-body');
@@ -878,7 +945,9 @@ const app = {
             }
             
             const isSidebarAction = e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay');
-            if (!isSidebarAction) {
+            const isModalAction = e.target.closest('#jump-overlay') || e.target.closest('#jump-modal');
+
+            if (!isSidebarAction && !isModalAction) {
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
@@ -1744,42 +1813,64 @@ const app = {
 
     changeReviewSortOrder() {
         this.reviewSortOrder = document.getElementById('review-sort-order').value;
-        this.buildReviewData(false); // 変更時は1ページ目に戻る
+        this.reviewCurrentPage = 0; // 追加: 並び順変更時に1ページ目に戻す
+        this.buildReviewData(false);
         this.renderReview();
     },
 
     changeReviewPerPage() {
         this.reviewPerPage = parseInt(document.getElementById('review-per-page').value, 10);
-        this.buildReviewData(false); // 変更時は1ページ目に戻る
+        this.reviewCurrentPage = 0; // 追加: 件数変更時に1ページ目に戻す
+        this.buildReviewData(false);
         this.renderReview();
     },
 
-    jumpToReviewPage() {
+    openJumpModal() {
         const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
+        const overlay = document.getElementById('jump-overlay');
+        const modal = document.getElementById('jump-modal');
+        const desc = document.getElementById('jump-modal-desc');
+        const input = document.getElementById('jump-input');
         
-        // ダミー入力を作って強制的にフォーカスを外し、スマホのキーボードを引っ込めるハック
-        const dummyInput = document.createElement('input');
-        dummyInput.setAttribute('type', 'text');
-        dummyInput.style.position = 'absolute';
-        dummyInput.style.opacity = '0';
-        document.body.appendChild(dummyInput);
-        dummyInput.focus();
+        desc.innerText = `1 から ${totalPages} のページ番号を入力`;
+        input.value = this.reviewCurrentPage + 1;
+        input.max = totalPages;
+        input.min = 1;
+        
+        overlay.classList.add('active');
+        modal.style.display = 'block';
         
         setTimeout(() => {
-            dummyInput.blur();
-            document.body.removeChild(dummyInput);
-            
-            const input = prompt(`移動したいページを入力してください (1 〜 ${totalPages}):`, this.reviewCurrentPage + 1);
-            if (input !== null) {
-                const page = parseInt(input, 10);
-                if (!isNaN(page) && page >= 1 && page <= totalPages) {
-                    this.reviewCurrentPage = page - 1;
-                    this.renderReview();
-                } else {
-                    alert(`1 から ${totalPages} の間の数字を入力してください。`);
-                }
-            }
-        }, 50);
+            input.focus();
+            input.select();
+        }, 100);
+        
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') this.executeJump();
+        };
+    },
+
+    closeJumpModal() {
+        document.getElementById('jump-input').blur(); 
+        document.getElementById('jump-overlay').classList.remove('active');
+        document.getElementById('jump-modal').style.display = 'none';
+    },
+
+    executeJump() {
+        const input = document.getElementById('jump-input');
+        const val = parseInt(input.value, 10);
+        const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
+        
+        input.blur(); 
+        
+        if (!isNaN(val) && val >= 1 && val <= totalPages) {
+            this.reviewCurrentPage = val - 1;
+            this.renderReview();
+            this.closeJumpModal();
+        } else {
+            alert(`1 から ${totalPages} の間の数字を入力してください。`);
+            input.focus();
+        }
     },
 
     prevReviewPage() {
