@@ -153,11 +153,13 @@
         }
         .arrow-btn { 
             background: none; color: var(--primary-color); font-size: 32px; font-weight: bold; 
-            width: 40px; /* 固定幅にして中央を安定させる */
+            width: 40px;
             display: flex; justify-content: center; align-items: center; padding: 0; 
             box-shadow: none; border-radius: 4px; 
             cursor: grab; 
-            user-select: none; -webkit-user-select: none; touch-action: pan-y; 
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: pan-y; 
         }
         .arrow-btn:active { cursor: grabbing; background-color: var(--primary-light); }
         .arrow-btn:hover { background-color: var(--primary-light); }
@@ -251,13 +253,22 @@
             gap: 10px;
             margin-bottom: 20px;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: wrap; 
         }
+        
+        /* スマホ等で折り返した際に、検索入力部とフィルタ部をそれぞれまとめる */
+        .search-group {
+            display: flex;
+            gap: 5px;
+            flex-grow: 1;
+            min-width: 260px; /* 入力欄とボタンが横に並ぶ最低幅 */
+        }
+        
         .search-input-wrapper {
             position: relative;
             flex-grow: 1;
-            min-width: 200px;
         }
+        
         .search-input-wrapper span {
             position: absolute;
             left: 12px;
@@ -265,6 +276,7 @@
             transform: translateY(-50%);
             color: var(--text-muted);
         }
+        
         #review-search-input {
             width: 100%;
             padding: 8px 10px 8px 35px;
@@ -276,6 +288,7 @@
             box-sizing: border-box;
             transition: var(--transition);
             font-size: 14px;
+            height: 100%; /* ボタンと高さを揃える */
         }
         #review-search-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
         
@@ -321,7 +334,7 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: center;
-            flex-grow: 1; /* 中央に寄せるための指定 */
+            flex-grow: 1; 
         }
 
         .pagination-btn {
@@ -522,13 +535,15 @@
 
         <!-- 検索・絞り込みバー -->
         <div class="review-search-container">
-            <div class="search-input-wrapper">
-                <span>🔍</span>
-                <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
-            </div>
-            <div class="review-filters-group">
+            <div class="search-group">
+                <div class="search-input-wrapper">
+                    <span>🔍</span>
+                    <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
+                </div>
                 <button onclick="app.applyReviewFilters()" style="padding: 8px 12px; font-size: 14px;">検索</button>
-                
+            </div>
+            
+            <div class="review-filters-group">
                 <select id="review-difficulty-filter" onchange="app.applyReviewFilters()">
                     <option value="all">難易度: 全て</option>
                     <option value="1">難易度: 1</option>
