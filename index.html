@@ -245,19 +245,29 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* 検索・絞り込みバー */
-        .review-search-container {
+        /* 復習ページの新しい上段・下段レイアウト */
+        .review-controls-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .review-controls-left {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
-            align-items: center;
-            flex-wrap: wrap; 
+            flex-wrap: wrap;
         }
-        .search-group {
+        .review-controls-right {
+            margin-left: auto;
+        }
+
+        .review-search-container {
             display: flex;
             gap: 5px;
-            flex-grow: 1;
-            min-width: 200px;
+            margin-bottom: 20px;
+            width: 100%;
         }
         .search-input-wrapper {
             position: relative;
@@ -284,14 +294,6 @@
         }
         #review-search-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
         
-        .review-filters-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        #review-difficulty-filter,
         #review-sort-order,
         #review-per-page {
             padding: 8px 10px;
@@ -307,7 +309,7 @@
         /* ページネーション（復習ページ用） */
         .pagination-container {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-between; /* 左右に ＜ と ＞ を配置 */
             align-items: center;
             margin-top: 25px;
             padding-top: 15px;
@@ -315,6 +317,7 @@
             transition: flex-direction 0.3s ease; 
         }
         
+        /* ページネーション反転用 */
         .pagination-container.swapped {
             flex-direction: row-reverse; 
         }
@@ -428,6 +431,19 @@
             <option value="auto">端末の設定に従う</option>
         </select>
     </div>
+    
+    <!-- 追加: 難易度フィルター（復習ページ用） -->
+    <div class="sidebar-filters" id="review-settings-group" style="display: none; border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+        <label style="font-weight: bold; margin-bottom: 5px; display: block;">難易度 (復習用)</label>
+        <select id="review-difficulty-filter" onchange="app.applyReviewFilters()">
+            <option value="all">全て</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+    </div>
 </div>
 
 <div id="app">
@@ -524,24 +540,9 @@
             </div>
         </div>
 
-        <!-- 検索・絞り込みバー -->
-        <div class="review-search-container">
-            <div class="search-group">
-                <div class="search-input-wrapper">
-                    <span>🔍</span>
-                    <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
-                </div>
-                <button onclick="app.applyReviewFilters()" style="padding: 8px 12px; font-size: 14px;">検索</button>
-            </div>
-            <div class="review-filters-group">
-                <select id="review-difficulty-filter" onchange="app.applyReviewFilters()">
-                    <option value="all">難易度: 全て</option>
-                    <option value="1">難易度: 1</option>
-                    <option value="2">難易度: 2</option>
-                    <option value="3">難易度: 3</option>
-                    <option value="4">難易度: 4</option>
-                    <option value="5">難易度: 5</option>
-                </select>
+        <!-- 復習ページ: 上段設定 + 下段検索 -->
+        <div class="review-controls-top">
+            <div class="review-controls-left">
                 <select id="review-sort-order" onchange="app.changeReviewSortOrder()">
                     <option value="asc">古い順</option>
                     <option value="desc">新しい順</option>
@@ -552,6 +553,19 @@
                     <option value="50">50件表示</option>
                 </select>
             </div>
+            <div class="review-controls-right">
+                <button onclick="app.toggleSettings(true)" class="btn-secondary" style="font-weight: normal; font-size: 13px; padding: 8px 12px; display: flex; align-items: center; gap: 5px;">
+                    ⚙️ 詳細設定
+                </button>
+            </div>
+        </div>
+
+        <div class="review-search-container">
+            <div class="search-input-wrapper">
+                <span>🔍</span>
+                <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
+            </div>
+            <button onclick="app.applyReviewFilters()" style="padding: 8px 15px; font-size: 14px; white-space: nowrap;">検索</button>
         </div>
 
         <div id="review-list-container" class="options-list"></div>
@@ -604,7 +618,7 @@ const app = {
     reviewPerPage: 10,
     reviewSortOrder: 'asc',
     isReviewAccordionsOpen: false,
-    lastReviewTopItem: null,
+    lastReviewTopItem: null, 
 
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
@@ -1292,6 +1306,13 @@ const app = {
         document.getElementById('editor-view').classList.add('hidden');
         document.getElementById('quiz-view').classList.add('hidden');
         document.getElementById('review-view').classList.add('hidden');
+        
+        // 復習ページ用サイドバー項目(詳細設定内)の表示切替
+        const reviewSettingsGroup = document.getElementById('review-settings-group');
+        if(reviewSettingsGroup) {
+            reviewSettingsGroup.style.display = (viewName === 'review') ? 'block' : 'none';
+        }
+        
         document.getElementById(`${viewName}-view`).classList.remove('hidden');
 
         if (viewName === 'quiz' && this.data.length > 0) {
@@ -1557,6 +1578,7 @@ const app = {
 
         this.reviewData = [];
         for (const q of this.allData) {
+            // ※ 設問ページの難易度フィルタではなく、詳細設定内の「復習用難易度」を見る
             if (diffFilter !== 'all' && String(q.difficulty) !== String(diffFilter)) continue;
 
             const bOpts = this.bookmarkedOptions[q.id];
@@ -1723,7 +1745,7 @@ const app = {
 
     changeReviewPerPage() {
         this.reviewPerPage = parseInt(document.getElementById('review-per-page').value, 10);
-        this.reviewCurrentPage = 0; 
+        this.buildReviewData(true);
         this.renderReview();
     },
 
@@ -1731,14 +1753,21 @@ const app = {
         const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
         const input = prompt(`移動したいページを入力してください (1 〜 ${totalPages}):`, this.reviewCurrentPage + 1);
         
+        // スマホキーボードを引っ込めるハック
+        if (document.activeElement) {
+            document.activeElement.blur();
+        }
+
         if (input !== null) {
-            const page = parseInt(input, 10);
-            if (!isNaN(page) && page >= 1 && page <= totalPages) {
-                this.reviewCurrentPage = page - 1;
-                this.renderReview();
-            } else {
-                alert(`1 から ${totalPages} の間の数字を入力してください。`);
-            }
+            setTimeout(() => {
+                const page = parseInt(input, 10);
+                if (!isNaN(page) && page >= 1 && page <= totalPages) {
+                    this.reviewCurrentPage = page - 1;
+                    this.renderReview();
+                } else {
+                    alert(`1 から ${totalPages} の間の数字を入力してください。`);
+                }
+            }, 50);
         }
     },
 
