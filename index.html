@@ -245,29 +245,19 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* 復習ページの新しい上段・下段レイアウト */
-        .review-controls-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .review-controls-left {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .review-controls-right {
-            margin-left: auto;
-        }
-
+        /* 検索・絞り込みバー */
         .review-search-container {
             display: flex;
-            gap: 5px;
+            gap: 10px;
             margin-bottom: 20px;
-            width: 100%;
+            align-items: center;
+            flex-wrap: wrap; 
+        }
+        .search-group {
+            display: flex;
+            gap: 5px;
+            flex-grow: 1;
+            min-width: 200px;
         }
         .search-input-wrapper {
             position: relative;
@@ -294,6 +284,14 @@
         }
         #review-search-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
         
+        .review-filters-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #review-difficulty-filter,
         #review-sort-order,
         #review-per-page {
             padding: 8px 10px;
@@ -309,7 +307,7 @@
         /* ページネーション（復習ページ用） */
         .pagination-container {
             display: flex;
-            justify-content: space-between; /* 左右に ＜ と ＞ を配置 */
+            justify-content: space-between; 
             align-items: center;
             margin-top: 25px;
             padding-top: 15px;
@@ -528,6 +526,10 @@
     <div id="review-view" class="view hidden">
         <div class="top-nav-bar">
             <a class="nav-link" onclick="app.switchView('quiz')">← 設問ページに戻る</a>
+            <!-- 移動: 詳細設定ボタン -->
+            <button onclick="app.toggleSettings(true)" class="btn-secondary" style="font-weight: normal; font-size: 13px; padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px;">
+                ⚙️ 詳細設定
+            </button>
         </div>
 
         <div class="quiz-header" style="align-items: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 15px; margin-bottom: 20px;">
@@ -540,32 +542,27 @@
             </div>
         </div>
 
-        <!-- 復習ページ: 上段設定 + 下段検索 -->
-        <div class="review-controls-top">
-            <div class="review-controls-left">
-                <select id="review-sort-order" onchange="app.changeReviewSortOrder()">
-                    <option value="asc">古い順</option>
-                    <option value="desc">新しい順</option>
-                </select>
+        <!-- 検索・絞り込みバー -->
+        <div class="review-search-container">
+            <div class="search-group">
+                <div class="search-input-wrapper">
+                    <span>🔍</span>
+                    <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
+                </div>
+                <button onclick="app.applyReviewFilters()" style="padding: 8px 15px; font-size: 14px; white-space: nowrap;">検索</button>
+            </div>
+            <div class="review-filters-group">
+                <!-- 順序入れ替え: 10件表示 → 古い順 -->
                 <select id="review-per-page" onchange="app.changeReviewPerPage()">
                     <option value="10">10件表示</option>
                     <option value="20">20件表示</option>
                     <option value="50">50件表示</option>
                 </select>
+                <select id="review-sort-order" onchange="app.changeReviewSortOrder()">
+                    <option value="asc">古い順</option>
+                    <option value="desc">新しい順</option>
+                </select>
             </div>
-            <div class="review-controls-right">
-                <button onclick="app.toggleSettings(true)" class="btn-secondary" style="font-weight: normal; font-size: 13px; padding: 8px 12px; display: flex; align-items: center; gap: 5px;">
-                    ⚙️ 詳細設定
-                </button>
-            </div>
-        </div>
-
-        <div class="review-search-container">
-            <div class="search-input-wrapper">
-                <span>🔍</span>
-                <input type="text" id="review-search-input" placeholder="単語や意味で検索..." onkeydown="if(event.key==='Enter') app.applyReviewFilters()">
-            </div>
-            <button onclick="app.applyReviewFilters()" style="padding: 8px 15px; font-size: 14px; white-space: nowrap;">検索</button>
         </div>
 
         <div id="review-list-container" class="options-list"></div>
@@ -573,7 +570,7 @@
         <!-- ページネーションをJSから生成 -->
         <div class="pagination-container" id="review-pagination"></div>
         
-        <!-- ジャンプ機能ボタン (テキストリンク風) -->
+        <!-- ジャンプ機能ボタン -->
         <div style="text-align: center; margin-top: 15px;">
             <a id="review-jump-link" class="nav-link" style="font-weight: normal; font-size: 14px; cursor: pointer; color: var(--text-muted);" onclick="app.jumpToReviewPage()">
                 ページを指定する
@@ -618,7 +615,7 @@ const app = {
     reviewPerPage: 10,
     reviewSortOrder: 'asc',
     isReviewAccordionsOpen: false,
-    lastReviewTopItem: null, 
+    lastReviewTopItem: null,
 
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
@@ -1307,7 +1304,6 @@ const app = {
         document.getElementById('quiz-view').classList.add('hidden');
         document.getElementById('review-view').classList.add('hidden');
         
-        // 復習ページ用サイドバー項目(詳細設定内)の表示切替
         const reviewSettingsGroup = document.getElementById('review-settings-group');
         if(reviewSettingsGroup) {
             reviewSettingsGroup.style.display = (viewName === 'review') ? 'block' : 'none';
@@ -1578,7 +1574,6 @@ const app = {
 
         this.reviewData = [];
         for (const q of this.allData) {
-            // ※ 設問ページの難易度フィルタではなく、詳細設定内の「復習用難易度」を見る
             if (diffFilter !== 'all' && String(q.difficulty) !== String(diffFilter)) continue;
 
             const bOpts = this.bookmarkedOptions[q.id];
@@ -1748,27 +1743,41 @@ const app = {
         this.buildReviewData(true);
         this.renderReview();
     },
-
+    
     jumpToReviewPage() {
         const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
-        const input = prompt(`移動したいページを入力してください (1 〜 ${totalPages}):`, this.reviewCurrentPage + 1);
         
-        // スマホキーボードを引っ込めるハック
+        // リンクなどのフォーカスを外す
         if (document.activeElement) {
             document.activeElement.blur();
         }
 
-        if (input !== null) {
+        setTimeout(() => {
+            const input = prompt(`移動したいページを入力してください (1 〜 ${totalPages}):`, this.reviewCurrentPage + 1);
+            
+            // スマホキーボードを確実に引っ込めるためのハック
+            const tempInput = document.createElement('input');
+            tempInput.setAttribute('readonly', 'readonly');
+            tempInput.style.position = 'absolute';
+            tempInput.style.opacity = '0';
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            
             setTimeout(() => {
-                const page = parseInt(input, 10);
-                if (!isNaN(page) && page >= 1 && page <= totalPages) {
-                    this.reviewCurrentPage = page - 1;
-                    this.renderReview();
-                } else {
-                    alert(`1 から ${totalPages} の間の数字を入力してください。`);
+                tempInput.blur();
+                document.body.removeChild(tempInput);
+                
+                if (input !== null) {
+                    const page = parseInt(input, 10);
+                    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+                        this.reviewCurrentPage = page - 1;
+                        this.renderReview();
+                    } else {
+                        alert(`1 から ${totalPages} の間の数字を入力してください。`);
+                    }
                 }
             }, 50);
-        }
+        }, 10);
     },
 
     prevReviewPage() {
