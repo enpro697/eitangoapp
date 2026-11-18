@@ -205,11 +205,8 @@
             text-align: left; 
             order: 1;
         }
-
-        /* アコーディオンアイコン */
         .icon-toggle { order: 3; }
 
-        /* 左手モード（>< の時）は星を左側に戻す */
         body.nav-swapped .opt-bookmark-btn { 
             order: 1; 
             margin-left: 0;
@@ -316,7 +313,7 @@
         /* ページネーション（復習ページ用） */
         .pagination-container {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-between; 
             align-items: center;
             margin-top: 25px;
             padding-top: 15px;
@@ -324,6 +321,7 @@
             transition: flex-direction 0.3s ease; 
         }
         
+        /* ページネーション反転用 */
         .pagination-container.swapped {
             flex-direction: row-reverse; 
         }
@@ -544,8 +542,8 @@
         </div>
 
         <div class="arrow-nav-container" id="arrow-nav-container">
-            <button class="arrow-btn" id="btn-prev" draggable="true" onclick="app.handleNavClick('prev')">＜</button>
-            <button class="arrow-btn" id="btn-next" draggable="true" onclick="app.handleNavClick('next')">＞</button>
+            <button class="arrow-btn" id="btn-prev" draggable="true" onclick="app.handleNavClick('prev', event)">＜</button>
+            <button class="arrow-btn" id="btn-next" draggable="true" onclick="app.handleNavClick('next', event)">＞</button>
         </div>
 
         <div id="question-text" class="question-text"></div>
@@ -605,7 +603,7 @@
         <!-- ページネーションをJSから生成 -->
         <div class="pagination-container" id="review-pagination"></div>
         
-        <!-- ジャンプ機能ボタン -->
+        <!-- ジャンプ機能ボタン (テキストリンク風) -->
         <div style="text-align: center; margin-top: 15px;">
             <a id="review-jump-link" class="nav-link" style="font-weight: normal; font-size: 14px; cursor: pointer; color: var(--text-muted);" onclick="app.openJumpModal()">
                 ページを指定する
@@ -644,13 +642,14 @@ const app = {
     user: null,
 
     isNavSwapped: false,
+    isSwiping: false, // スワイプ中の誤動作防止フラグ
     
     reviewData: [],
     reviewCurrentPage: 0,
     reviewPerPage: 10,
     reviewSortOrder: 'asc',
     isReviewAccordionsOpen: false,
-    lastReviewTopItem: null, 
+    lastReviewTopItem: null,
 
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
@@ -770,11 +769,11 @@ const app = {
         
         if (this.isNavSwapped) {
             container.classList.add('swapped');
-            reviewContainer.classList.add('swapped');
+            if(reviewContainer) reviewContainer.classList.add('swapped');
             document.body.classList.add('nav-swapped');
         } else {
             container.classList.remove('swapped');
-            reviewContainer.classList.remove('swapped');
+            if(reviewContainer) reviewContainer.classList.remove('swapped');
             document.body.classList.remove('nav-swapped');
         }
         
@@ -785,23 +784,44 @@ const app = {
         if (navigator.vibrate) navigator.vibrate(50);
     },
 
+    // PCドラッグ＆スマホスワイプを両方カバーする処理
     attachNavSwapListeners(btn) {
         if (!btn) return;
+        
+        // --- PC用：ドラッグ＆ドロップ ---
+        btn.draggable = true;
         btn.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', e.target.id);
+            e.dataTransfer.setData('text/plain', 'nav-swap');
             e.target.style.opacity = '0.5';
         });
         btn.addEventListener('dragend', (e) => {
             e.target.style.opacity = '1';
         });
-        btn.addEventListener('dragover', (e) => {
-            e.preventDefault(); 
-        });
-        btn.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const draggedId = e.dataTransfer.getData('text/plain');
-            if (draggedId && draggedId !== e.target.id) {
+        
+        // --- スマホ用：横スワイプ ---
+        let startX = 0;
+        let startY = 0;
+        
+        btn.addEventListener('touchstart', (e) => {
+            startX = e.changedTouches[0].clientX;
+            startY = e.changedTouches[0].clientY;
+            this.isSwiping = false;
+        }, { passive: true });
+        
+        btn.addEventListener('touchmove', (e) => {
+            const curX = e.changedTouches[0].clientX;
+            const curY = e.changedTouches[0].clientY;
+            // X方向の移動がY方向より大きく、かつ30px以上動いた場合スワイプと判定
+            if (Math.abs(curX - startX) > 30 && Math.abs(curX - startX) > Math.abs(curY - startY)) {
+                this.isSwiping = true;
+            }
+        }, { passive: true });
+        
+        btn.addEventListener('touchend', (e) => {
+            if (this.isSwiping) {
                 this.toggleNavSwap();
+                // 直後の click イベントを防止するため、フラグ解除を少し遅らせる
+                setTimeout(() => { this.isSwiping = false; }, 300);
             }
         });
     },
@@ -811,6 +831,15 @@ const app = {
         const nextBtn = document.getElementById('btn-next');
         this.attachNavSwapListeners(prevBtn);
         this.attachNavSwapListeners(nextBtn);
+        
+        // PC向け：画面のどこにドロップしても反応するようにする
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => {
+            if (e.dataTransfer.getData('text/plain') === 'nav-swap') {
+                e.preventDefault();
+                this.toggleNavSwap();
+            }
+        });
     },
 
     async toggleLogin() {
@@ -905,6 +934,7 @@ const app = {
                 }
             }
             
+            // 共通の画面端タップ処理
             const isSidebarAction = e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay');
             const isModalAction = e.target.closest('#jump-overlay') || e.target.closest('#jump-modal');
 
@@ -1440,7 +1470,11 @@ const app = {
         window.scrollTo({ top: 0, behavior: 'auto' }); 
     },
 
-    handleNavClick(direction) {
+    handleNavClick(direction, event) {
+        if (this.isSwiping) {
+            if (event) { event.preventDefault(); event.stopPropagation(); }
+            return;
+        }
         if (Date.now() - (this.lastSwapTime || 0) < 300) return;
         if (direction === 'prev') this.prevPage();
         else if (direction === 'next') this.nextPage();
@@ -1774,14 +1808,14 @@ const app = {
 
     changeReviewSortOrder() {
         this.reviewSortOrder = document.getElementById('review-sort-order').value;
-        this.reviewCurrentPage = 0; // 追加: 並び順変更時に1ページ目に戻す
+        this.reviewCurrentPage = 0; 
         this.buildReviewData(false);
         this.renderReview();
     },
 
     changeReviewPerPage() {
         this.reviewPerPage = parseInt(document.getElementById('review-per-page').value, 10);
-        this.reviewCurrentPage = 0; // 追加: 件数変更時に1ページ目に戻す
+        this.reviewCurrentPage = 0; 
         this.buildReviewData(false);
         this.renderReview();
     },
@@ -1822,7 +1856,17 @@ const app = {
         const val = parseInt(input.value, 10);
         const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
         
-        input.blur(); 
+        // スマホ用：画面外にダミー入力枠を作ってフォーカスを奪い、即座にblurしてキーボードを完全に消すハック
+        const dummy = document.createElement('input');
+        dummy.style.position = 'absolute';
+        dummy.style.opacity = '0';
+        dummy.style.top = '-9999px';
+        document.body.appendChild(dummy);
+        dummy.focus();
+        setTimeout(() => {
+            dummy.blur();
+            document.body.removeChild(dummy);
+        }, 50);
         
         if (!isNaN(val) && val >= 1 && val <= totalPages) {
             this.reviewCurrentPage = val - 1;
@@ -1891,7 +1935,14 @@ const app = {
             btn.disabled = disabled;
             
             if (!disabled && !active) {
-                btn.onclick = () => {
+                btn.onclick = (e) => {
+                    if (isNav && this.isSwiping) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
+                    if (isNav && Date.now() - (this.lastSwapTime || 0) < 300) return;
+
                     this.reviewCurrentPage = pageIdx;
                     this.renderReview();
                 };
