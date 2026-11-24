@@ -409,7 +409,7 @@
         .sidebar-item:hover { background: var(--hover-bg); }
         .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
 
-        /* 単語選択用フローティングポップアップ（コンパクト＆下部編集エリア付き） */
+        /* 単語選択用フローティングポップアップ（コンパクト＆下部編集＋一覧展開対応） */
         #word-picker-popup {
             position: fixed;
             bottom: 24px;
@@ -418,17 +418,24 @@
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
             padding: 5px 6px 6px 5px;
             display: flex;
             flex-direction: column;
             gap: 5px;
-            width: 176px;
+            width: 196px;
             max-width: calc(100vw - 16px);
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            opacity: 0.95;
+            opacity: 0.96;
+        }
+        /* 一覧表示モード時：画面の横半分・縦半分の大きさ */
+        #word-picker-popup.list-open {
+            width: 50vw;
+            min-width: 280px;
+            max-width: 92vw;
+            opacity: 0.99;
         }
         .word-picker-top-row {
             display: flex;
@@ -445,22 +452,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         .word-picker-btn {
-            padding: 5px 10px;
+            padding: 5px 8px;
             font-size: 12px;
             border-radius: 5px;
             white-space: nowrap;
             line-height: 1.2;
             flex: 1;
         }
-        .word-picker-btn-undo {
+        .word-picker-btn-list {
             background-color: var(--btn-sec-bg);
             color: var(--btn-sec-text);
             border: 1px solid var(--border-color);
         }
-        .word-picker-btn-undo:hover {
+        .word-picker-btn-list:hover {
             background-color: var(--btn-sec-hover);
+        }
+        .word-picker-btn-list.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
         }
         #word-picker-input {
             width: 100%;
@@ -479,6 +492,7 @@
             overflow-y: hidden;
             white-space: pre-wrap;
             word-break: break-word;
+            overflow-wrap: anywhere;
             user-select: text;
             -webkit-user-select: text;
         }
@@ -487,6 +501,132 @@
             border-color: var(--primary-color);
             box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.3);
         }
+
+        /* 保存済み単語一覧パネル */
+        #word-picker-list-panel {
+            display: flex;
+            flex-direction: column;
+            height: 50vh;
+            max-height: calc(100vh - 140px);
+            border-top: 1px solid var(--border-color);
+            padding-top: 6px;
+            margin-top: 2px;
+            box-sizing: border-box;
+        }
+        .word-picker-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 0 2px 6px;
+            border-bottom: 1px dashed var(--border-color);
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+        #word-picker-list-body {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 2px;
+        }
+        .saved-word-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--input-bg);
+            box-sizing: border-box;
+        }
+        .saved-word-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+        .saved-word-action-btn {
+            padding: 3px 7px;
+            font-size: 11px;
+            border-radius: 4px;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .saved-word-btn-edit {
+            background-color: var(--btn-sec-bg);
+            color: var(--btn-sec-text);
+            border: 1px solid var(--border-color);
+        }
+        .saved-word-btn-edit:hover {
+            background-color: var(--btn-sec-hover);
+        }
+        .saved-word-btn-done {
+            background-color: var(--correct-color);
+            color: #ffffff;
+            border: 1px solid var(--correct-color);
+        }
+        .saved-word-btn-done:hover {
+            opacity: 0.9;
+            background-color: var(--correct-color);
+        }
+        .saved-word-btn-del {
+            background: none;
+            color: var(--incorrect-color);
+            border: 1px solid var(--incorrect-color);
+        }
+        .saved-word-btn-del:hover {
+            background-color: var(--incorrect-bg);
+        }
+        .saved-word-text {
+            flex: 1;
+            min-width: 0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            padding-top: 2px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .saved-word-edit-input {
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+            min-height: 26px;
+            padding: 3px 6px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.4;
+            box-sizing: border-box;
+            resize: none;
+            overflow-y: hidden;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .saved-word-edit-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.35);
+        }
+        .saved-word-empty {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12.5px;
+            padding: 20px 8px;
+        }
+
         #word-picker-toast {
             position: fixed;
             bottom: 72px;
@@ -624,9 +764,16 @@
     <div class="word-picker-top-row">
         <span id="word-picker-handle" title="ドラッグして移動">⠿</span>
         <button class="word-picker-btn" onmousedown="event.preventDefault()" ontouchstart="app.captureCurrentSelection()" onclick="app.addSelectedWord()">追加</button>
-        <button class="word-picker-btn word-picker-btn-undo" onmousedown="event.preventDefault()" onclick="app.undoSavedWord()">戻る</button>
+        <button id="word-picker-list-btn" class="word-picker-btn word-picker-btn-list" onmousedown="event.preventDefault()" onclick="app.toggleSavedWordsList()">一覧表示</button>
     </div>
     <textarea id="word-picker-input" rows="1" placeholder="選択/編集..." oninput="app.autoResizeWordPickerInput()"></textarea>
+    <div id="word-picker-list-panel" class="hidden">
+        <div class="word-picker-list-header">
+            <span>保存済み単語 (<span id="word-picker-list-count">0</span>件)</span>
+            <span style="font-size: 11px;">新しい順 / 折り返し表示</span>
+        </div>
+        <div id="word-picker-list-body"></div>
+    </div>
 </div>
 <div id="word-picker-toast"></div>
 
@@ -815,9 +962,11 @@ const app = {
     isReviewAccordionsOpen: false,
     lastReviewTopItem: null,
 
-    // 新機能：単語選択・保存リスト（クラウド同期対応）
+    // 新機能：単語選択・保存リスト（クラウド同期＋一覧編集対応）
     savedWords: [],
     isWordSelectMode: false,
+    isWordListOpen: false,
+    editingWordIndex: null,
     cachedSelection: "",
     cachedSelectionTime: 0,
     toastTimer: null,
@@ -885,7 +1034,7 @@ const app = {
     },
 
     /* =========================================================
-       新機能：単語選択・フローティングポップアップ関連
+       新機能：単語選択・フローティングポップアップ＆一覧編集関連
        ========================================================= */
     initWordPicker() {
         this.updateSavedWordsUI();
@@ -909,8 +1058,8 @@ const app = {
             const inputEl = document.getElementById('word-picker-input');
             const popupEl = document.getElementById('word-picker-popup');
 
-            // ポップアップ内の入力欄を編集中（またはポップアップ内の選択）なら上書きしない
-            if (document.activeElement === inputEl) return;
+            // ポップアップ内の入力欄や一覧パネル内を編集中・選択中なら上書きしない
+            if (document.activeElement && popupEl && popupEl.contains(document.activeElement)) return;
             if (popupEl && ((sel.anchorNode && popupEl.contains(sel.anchorNode)) || (sel.focusNode && popupEl.contains(sel.focusNode)))) {
                 return;
             }
@@ -942,14 +1091,17 @@ const app = {
         });
     },
 
+    autoResizeTextarea(el, minH = 26, maxH = 120) {
+        if (!el) return;
+        el.style.height = 'auto';
+        const nextH = Math.min(Math.max(el.scrollHeight, minH), maxH);
+        el.style.height = `${nextH}px`;
+        el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
+    },
+
     autoResizeWordPickerInput() {
         const inputEl = document.getElementById('word-picker-input');
-        if (!inputEl) return;
-        inputEl.style.height = 'auto';
-        const maxH = 120;
-        const nextH = Math.min(Math.max(inputEl.scrollHeight, 26), maxH);
-        inputEl.style.height = `${nextH}px`;
-        inputEl.style.overflowY = inputEl.scrollHeight > maxH ? 'auto' : 'hidden';
+        this.autoResizeTextarea(inputEl, 26, 120);
         this.clampWordPickerPosition();
     },
 
@@ -979,6 +1131,7 @@ const app = {
             this.restoreWordPickerPosition();
             this.autoResizeWordPickerInput();
         } else {
+            this.toggleSavedWordsList(false);
             popup.classList.add('hidden');
         }
     },
@@ -1058,8 +1211,9 @@ const app = {
     },
 
     captureCurrentSelection() {
+        const popupEl = document.getElementById('word-picker-popup');
         const inputEl = document.getElementById('word-picker-input');
-        if (document.activeElement === inputEl) return;
+        if (document.activeElement && popupEl && popupEl.contains(document.activeElement)) return;
         const sel = window.getSelection();
         const text = sel ? sel.toString().trim() : "";
         if (text) {
@@ -1103,6 +1257,7 @@ const app = {
         }
 
         this.savedWords.push(normalized);
+        this.editingWordIndex = null;
         this.saveSavedWords();
         this.cachedSelection = "";
 
@@ -1116,17 +1271,158 @@ const app = {
         if (sel && sel.removeAllRanges) {
             try { sel.removeAllRanges(); } catch (e) {}
         }
+        if (this.isWordListOpen) {
+            this.renderSavedWordsList();
+        }
         this.showToast(`追加: ${normalized} (${this.savedWords.length}件)`);
     },
 
-    undoSavedWord() {
+    toggleSavedWordsList(forceState = null) {
+        const nextState = (typeof forceState === 'boolean') ? forceState : !this.isWordListOpen;
+        this.isWordListOpen = nextState;
+
+        const popup = document.getElementById('word-picker-popup');
+        const panel = document.getElementById('word-picker-list-panel');
+        const btn = document.getElementById('word-picker-list-btn');
+        if (!popup || !panel || !btn) return;
+
+        if (this.isWordListOpen) {
+            this.editingWordIndex = null;
+            popup.classList.add('list-open');
+            panel.classList.remove('hidden');
+            btn.classList.add('active');
+            btn.innerText = '閉じる';
+            this.renderSavedWordsList();
+            // 展開後に画面外へはみ出さないよう位置を補正
+            requestAnimationFrame(() => this.clampWordPickerPosition());
+        } else {
+            this.editingWordIndex = null;
+            popup.classList.remove('list-open');
+            panel.classList.add('hidden');
+            btn.classList.remove('active');
+            btn.innerText = '一覧表示';
+            this.restoreWordPickerPosition();
+        }
+    },
+
+    renderSavedWordsList() {
+        const body = document.getElementById('word-picker-list-body');
+        const countEl = document.getElementById('word-picker-list-count');
+        if (countEl) countEl.innerText = this.savedWords.length;
+        if (!body) return;
+
+        body.innerHTML = '';
+
         if (this.savedWords.length === 0) {
-            this.showToast("取り消す単語がありません");
+            body.innerHTML = '<div class="saved-word-empty">保存されている単語はありません。</div>';
             return;
         }
-        const removed = this.savedWords.pop();
+
+        // 新しく追加した単語が上に来るように逆順で表示
+        for (let idx = this.savedWords.length - 1; idx >= 0; idx--) {
+            const word = this.savedWords[idx];
+            const isEditing = (this.editingWordIndex === idx);
+
+            const row = document.createElement('div');
+            row.className = 'saved-word-row';
+
+            const actions = document.createElement('div');
+            actions.className = 'saved-word-actions';
+
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = `saved-word-action-btn ${isEditing ? 'saved-word-btn-done' : 'saved-word-btn-edit'}`;
+            editBtn.innerText = isEditing ? '完了' : '編集';
+            editBtn.onclick = () => {
+                if (isEditing) {
+                    this.finishEditSavedWord(idx);
+                } else {
+                    this.startEditSavedWord(idx);
+                }
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'saved-word-action-btn saved-word-btn-del';
+            delBtn.innerText = '削除';
+            delBtn.onclick = () => this.deleteSavedWord(idx);
+
+            actions.appendChild(editBtn);
+            actions.appendChild(delBtn);
+            row.appendChild(actions);
+
+            if (isEditing) {
+                const textarea = document.createElement('textarea');
+                textarea.id = `saved-word-edit-${idx}`;
+                textarea.className = 'saved-word-edit-input';
+                textarea.rows = 1;
+                textarea.value = word;
+                textarea.oninput = () => this.autoResizeTextarea(textarea, 26, 200);
+                textarea.onkeydown = (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+                        e.preventDefault();
+                        this.finishEditSavedWord(idx);
+                    }
+                };
+                row.appendChild(textarea);
+
+                // 描画後に高さを自動調整してフォーカス
+                requestAnimationFrame(() => {
+                    this.autoResizeTextarea(textarea, 26, 200);
+                    textarea.focus();
+                    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+                });
+            } else {
+                const textDiv = document.createElement('div');
+                textDiv.className = 'saved-word-text';
+                textDiv.textContent = word;
+                row.appendChild(textDiv);
+            }
+
+            body.appendChild(row);
+        }
+    },
+
+    startEditSavedWord(idx) {
+        this.editingWordIndex = idx;
+        this.renderSavedWordsList();
+    },
+
+    finishEditSavedWord(idx) {
+        const inputEl = document.getElementById(`saved-word-edit-${idx}`);
+        if (!inputEl) {
+            this.editingWordIndex = null;
+            this.renderSavedWordsList();
+            return;
+        }
+        const updated = inputEl.value.replace(/\s+/g, ' ').trim();
+        if (!updated) {
+            alert("空文字では保存できません。削除する場合は「削除」ボタンを押してください。");
+            inputEl.focus();
+            return;
+        }
+
+        inputEl.blur();
+        this.savedWords[idx] = updated;
+        this.editingWordIndex = null;
         this.saveSavedWords();
-        this.showToast(`取消: ${removed} (残り${this.savedWords.length}件)`);
+        this.renderSavedWordsList();
+        this.showToast(`更新: ${updated}`);
+    },
+
+    deleteSavedWord(idx) {
+        const target = this.savedWords[idx];
+        if (target === undefined) return;
+
+        if (!confirm(`「${target}」を削除しますか？`)) {
+            return;
+        }
+
+        this.savedWords.splice(idx, 1);
+        this.editingWordIndex = null;
+        this.saveSavedWords();
+        this.renderSavedWordsList();
+        this.showToast(`削除: ${target} (残り${this.savedWords.length}件)`);
     },
 
     saveSavedWords() {
@@ -1140,6 +1436,10 @@ const app = {
         const copyBtn = document.getElementById('copy-saved-words-btn');
         if (copyBtn) {
             copyBtn.innerText = `保存済単語一括コピー (${this.savedWords.length})`;
+        }
+        const listCount = document.getElementById('word-picker-list-count');
+        if (listCount) {
+            listCount.innerText = this.savedWords.length;
         }
     },
 
@@ -1164,7 +1464,11 @@ const app = {
         }
         if (confirm(`保存済みの単語 ${this.savedWords.length}件 をすべて削除しますか？`)) {
             this.savedWords = [];
+            this.editingWordIndex = null;
             this.saveSavedWords();
+            if (this.isWordListOpen) {
+                this.renderSavedWordsList();
+            }
             this.showToast("保存済み単語を一括削除しました");
         }
     },
@@ -1480,6 +1784,9 @@ const app = {
 
         this.updateBookmarkUI();
         this.updateSavedWordsUI();
+        if (this.isWordListOpen) {
+            this.renderSavedWordsList();
+        }
         this.renderSidebar();
 
         if (document.getElementById('bookmark-filter').checked) {
@@ -1597,6 +1904,9 @@ const app = {
 
             this.updateBookmarkUI();
             this.updateSavedWordsUI();
+            if (this.isWordListOpen) {
+                this.renderSavedWordsList();
+            }
             this.renderSidebar();
             if (document.getElementById('bookmark-filter').checked) {
                 this.applyFilters();
