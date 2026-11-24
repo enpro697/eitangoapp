@@ -126,12 +126,12 @@
         .btn-secondary { background-color: var(--btn-sec-bg); color: var(--btn-sec-text); border: 1px solid var(--border-color); }
         .btn-secondary:hover { background-color: var(--btn-sec-hover); }
 
-        textarea {
+        textarea#json-input {
             width: 100%; height: 50vh; padding: 15px; border: 1px solid var(--border-color);
             border-radius: 8px; font-family: monospace; font-size: 14px; resize: vertical; box-sizing: border-box;
             background-color: var(--input-bg); color: var(--text-main); transition: var(--transition);
         }
-        textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
+        textarea#json-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2); }
         .error-message { color: var(--incorrect-color); background-color: var(--incorrect-bg); padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; }
         .editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px;}
 
@@ -409,7 +409,7 @@
         .sidebar-item:hover { background: var(--hover-bg); }
         .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
 
-        /* 単語選択用フローティングポップアップ（超コンパクト設計） */
+        /* 単語選択用フローティングポップアップ（コンパクト＆下部編集エリア付き） */
         #word-picker-popup {
             position: fixed;
             bottom: 24px;
@@ -419,13 +419,21 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            padding: 4px 6px 5px 4px;
+            padding: 5px 6px 6px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 176px;
+            max-width: calc(100vw - 16px);
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            opacity: 0.95;
+        }
+        .word-picker-top-row {
             display: flex;
             align-items: center;
             gap: 5px;
-            user-select: none;
-            -webkit-user-select: none;
-            opacity: 0.94;
         }
         #word-picker-handle {
             cursor: move;
@@ -434,7 +442,6 @@
             font-size: 14px;
             line-height: 1;
             padding: 4px 2px;
-            align-self: flex-start;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -445,6 +452,7 @@
             border-radius: 5px;
             white-space: nowrap;
             line-height: 1.2;
+            flex: 1;
         }
         .word-picker-btn-undo {
             background-color: var(--btn-sec-bg);
@@ -453,6 +461,31 @@
         }
         .word-picker-btn-undo:hover {
             background-color: var(--btn-sec-hover);
+        }
+        #word-picker-input {
+            width: 100%;
+            min-height: 26px;
+            max-height: 120px;
+            padding: 4px 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 12.5px;
+            line-height: 1.35;
+            box-sizing: border-box;
+            resize: none;
+            overflow-y: hidden;
+            white-space: pre-wrap;
+            word-break: break-word;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        #word-picker-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.3);
         }
         #word-picker-toast {
             position: fixed;
@@ -588,9 +621,12 @@
 
 <!-- 単語選択用フローティングポップアップ -->
 <div id="word-picker-popup" class="hidden">
-    <span id="word-picker-handle" title="ドラッグして移動">⠿</span>
-    <button class="word-picker-btn" onmousedown="event.preventDefault()" ontouchstart="app.captureCurrentSelection()" onclick="app.addSelectedWord()">追加</button>
-    <button class="word-picker-btn word-picker-btn-undo" onmousedown="event.preventDefault()" onclick="app.undoSavedWord()">戻る</button>
+    <div class="word-picker-top-row">
+        <span id="word-picker-handle" title="ドラッグして移動">⠿</span>
+        <button class="word-picker-btn" onmousedown="event.preventDefault()" ontouchstart="app.captureCurrentSelection()" onclick="app.addSelectedWord()">追加</button>
+        <button class="word-picker-btn word-picker-btn-undo" onmousedown="event.preventDefault()" onclick="app.undoSavedWord()">戻る</button>
+    </div>
+    <textarea id="word-picker-input" rows="1" placeholder="選択/編集..." oninput="app.autoResizeWordPickerInput()"></textarea>
 </div>
 <div id="word-picker-toast"></div>
 
@@ -854,13 +890,40 @@ const app = {
     initWordPicker() {
         this.updateSavedWordsUI();
 
-        // 選択中のテキストを常に監視（スマホでボタンタップ時に選択が外れる対策）
+        const pickerInput = document.getElementById('word-picker-input');
+        if (pickerInput) {
+            // Enterキー（変換確定中やShift+Enterを除く）でそのまま追加
+            pickerInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+                    e.preventDefault();
+                    this.addSelectedWord();
+                }
+            });
+        }
+
+        // 選択中のテキストを監視し、ポップアップ下部の編集エリアへ自動反映
         document.addEventListener('selectionchange', () => {
             const sel = window.getSelection();
-            const text = sel ? sel.toString().trim() : "";
+            if (!sel) return;
+
+            const inputEl = document.getElementById('word-picker-input');
+            const popupEl = document.getElementById('word-picker-popup');
+
+            // ポップアップ内の入力欄を編集中（またはポップアップ内の選択）なら上書きしない
+            if (document.activeElement === inputEl) return;
+            if (popupEl && ((sel.anchorNode && popupEl.contains(sel.anchorNode)) || (sel.focusNode && popupEl.contains(sel.focusNode)))) {
+                return;
+            }
+
+            const text = sel.toString().trim();
             if (text) {
-                this.cachedSelection = text;
+                const normalized = text.replace(/\s+/g, ' ').trim();
+                this.cachedSelection = normalized;
                 this.cachedSelectionTime = Date.now();
+                if (this.isWordSelectMode && inputEl) {
+                    inputEl.value = normalized;
+                    this.autoResizeWordPickerInput();
+                }
             }
         });
 
@@ -872,6 +935,36 @@ const app = {
 
         // ポップアップのドラッグ移動を初期化
         this.setupWordPickerDrag();
+
+        // 画面リサイズ時にポップアップが画面外に出ないよう補正
+        window.addEventListener('resize', () => {
+            if (this.isWordSelectMode) this.clampWordPickerPosition();
+        });
+    },
+
+    autoResizeWordPickerInput() {
+        const inputEl = document.getElementById('word-picker-input');
+        if (!inputEl) return;
+        inputEl.style.height = 'auto';
+        const maxH = 120;
+        const nextH = Math.min(Math.max(inputEl.scrollHeight, 26), maxH);
+        inputEl.style.height = `${nextH}px`;
+        inputEl.style.overflowY = inputEl.scrollHeight > maxH ? 'auto' : 'hidden';
+        this.clampWordPickerPosition();
+    },
+
+    clampWordPickerPosition() {
+        const popup = document.getElementById('word-picker-popup');
+        if (!popup || popup.classList.contains('hidden')) return;
+        if (popup.style.left === '' && popup.style.top === '') return;
+
+        const rect = popup.getBoundingClientRect();
+        const maxX = Math.max(4, window.innerWidth - rect.width - 4);
+        const maxY = Math.max(4, window.innerHeight - rect.height - 4);
+        const x = Math.min(Math.max(4, rect.left), maxX);
+        const y = Math.min(Math.max(4, rect.top), maxY);
+        popup.style.left = `${x}px`;
+        popup.style.top = `${y}px`;
     },
 
     setWordSelectMode(enabled, save = true) {
@@ -884,6 +977,7 @@ const app = {
         if (enabled) {
             popup.classList.remove('hidden');
             this.restoreWordPickerPosition();
+            this.autoResizeWordPickerInput();
         } else {
             popup.classList.add('hidden');
         }
@@ -964,25 +1058,38 @@ const app = {
     },
 
     captureCurrentSelection() {
+        const inputEl = document.getElementById('word-picker-input');
+        if (document.activeElement === inputEl) return;
         const sel = window.getSelection();
         const text = sel ? sel.toString().trim() : "";
         if (text) {
-            this.cachedSelection = text;
+            const normalized = text.replace(/\s+/g, ' ').trim();
+            this.cachedSelection = normalized;
             this.cachedSelectionTime = Date.now();
+            if (inputEl && !inputEl.value.trim()) {
+                inputEl.value = normalized;
+                this.autoResizeWordPickerInput();
+            }
         }
     },
 
     addSelectedWord() {
+        const inputEl = document.getElementById('word-picker-input');
         const sel = window.getSelection();
-        let text = sel ? sel.toString().trim() : "";
 
-        // スマホ等でタップ瞬間に選択が消えた場合、直近2秒以内のキャッシュを利用
+        // 1. まず下部の編集エリアの文字列を優先（編集後・手入力の文字列を反映）
+        let text = inputEl ? inputEl.value.trim() : "";
+
+        // 2. 入力欄が空なら現在の選択範囲または直近キャッシュを参照
+        if (!text) {
+            text = sel ? sel.toString().trim() : "";
+        }
         if (!text && this.cachedSelection && (Date.now() - this.cachedSelectionTime < 2000)) {
             text = this.cachedSelection;
         }
 
         if (!text) {
-            this.showToast("単語を範囲選択してください");
+            this.showToast("単語を範囲選択または入力してください");
             return;
         }
 
@@ -998,6 +1105,14 @@ const app = {
         this.savedWords.push(normalized);
         this.saveSavedWords();
         this.cachedSelection = "";
+
+        if (inputEl) {
+            inputEl.value = "";
+            this.autoResizeWordPickerInput();
+            if (document.activeElement === inputEl) {
+                inputEl.blur();
+            }
+        }
         if (sel && sel.removeAllRanges) {
             try { sel.removeAllRanges(); } catch (e) {}
         }
@@ -1214,7 +1329,7 @@ const app = {
             if (!isQuizView && !isReviewView) return;
             if (this.hasTextSelection()) return;
             if (e.target.closest('#word-picker-popup')) return;
-            if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select') || e.target.closest('input')) return;
+            if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select') || e.target.closest('input') || e.target.closest('textarea')) return;
             if (e.target.closest('#jump-modal')) return;
 
             if (isReviewView) {
