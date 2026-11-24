@@ -170,7 +170,7 @@
         /* 選択肢とアコーディオン */
         .options-list { display: flex; flex-direction: column; gap: 12px; }
         .option-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--card-bg); transition: var(--transition); scroll-margin-top: 20px; }
-        .option-button { width: 100%; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
+        .option-button { width: 100%; box-sizing: border-box; text-align: left; background: none; border: none; padding: 15px 20px; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-weight: 500; box-shadow: none; }
         .option-button:hover { background-color: var(--hover-bg); }
 
         .option-item.answered-correct { border-color: var(--correct-color); }
@@ -204,8 +204,10 @@
             flex-grow: 1; 
             text-align: left; 
             order: 1;
+            user-select: text;
+            -webkit-user-select: text;
         }
-        .icon-toggle { order: 3; }
+        .icon-toggle { order: 3; user-select: none; }
 
         body.nav-swapped .opt-bookmark-btn { 
             order: 1; 
@@ -406,6 +408,105 @@
         .sidebar-item { padding: 10px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s; }
         .sidebar-item:hover { background: var(--hover-bg); }
         .sidebar-item.active { background: var(--primary-light); font-weight: bold; color: var(--primary-color); border-left-color: var(--primary-color); }
+
+        /* 単語選択用フローティングポップアップ（超コンパクト設計） */
+        #word-picker-popup {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            z-index: 90;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            padding: 4px 6px 5px 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            user-select: none;
+            -webkit-user-select: none;
+            opacity: 0.94;
+        }
+        #word-picker-handle {
+            cursor: move;
+            touch-action: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1;
+            padding: 4px 2px;
+            align-self: flex-start;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .word-picker-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+        .word-picker-btn-undo {
+            background-color: var(--btn-sec-bg);
+            color: var(--btn-sec-text);
+            border: 1px solid var(--border-color);
+        }
+        .word-picker-btn-undo:hover {
+            background-color: var(--btn-sec-hover);
+        }
+        #word-picker-toast {
+            position: fixed;
+            bottom: 72px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.9);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 120;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            white-space: nowrap;
+            max-width: 90vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #word-picker-toast.show {
+            opacity: 1;
+        }
+        .radio-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .radio-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .sidebar-action-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .sidebar-delete-wrap {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-danger-outline {
+            background: none;
+            color: var(--incorrect-color);
+            border: 1px solid var(--incorrect-color);
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+        .btn-danger-outline:hover {
+            background-color: var(--incorrect-bg);
+        }
     </style>
 </head>
 <body>
@@ -453,7 +554,7 @@
     </div>
     
     <!-- 難易度フィルター（復習ページ用） -->
-    <div class="sidebar-filters" id="review-settings-group" style="display: none; border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+    <div class="sidebar-filters" id="review-settings-group" style="display: none;">
         <label style="font-weight: bold; margin-bottom: 5px; display: block;">難易度 (復習用)</label>
         <select id="review-difficulty-filter" onchange="app.applyReviewFilters()">
             <option value="all">全て</option>
@@ -464,7 +565,34 @@
             <option value="5">5</option>
         </select>
     </div>
+
+    <!-- 新機能：単語選択・保存リスト管理 -->
+    <div class="sidebar-filters" style="border-bottom: none; margin-bottom: 0;">
+        <div class="radio-row">
+            <span style="font-weight: bold;">単語選択可</span>
+            <div class="radio-options">
+                <label><input type="radio" name="word-select-mode" value="on" onchange="app.setWordSelectMode(true)"> ON</label>
+                <label><input type="radio" name="word-select-mode" value="off" checked onchange="app.setWordSelectMode(false)"> OFF</label>
+            </div>
+        </div>
+        <div class="sidebar-action-row">
+            <button id="copy-saved-words-btn" class="btn-secondary" onclick="app.copySavedWords()" style="width: 100%; padding: 8px 10px; font-size: 13px;">
+                保存済単語一括コピー (0)
+            </button>
+            <div class="sidebar-delete-wrap">
+                <button class="btn-danger-outline" onclick="app.clearSavedWords()">一括削除</button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- 単語選択用フローティングポップアップ -->
+<div id="word-picker-popup" class="hidden">
+    <span id="word-picker-handle" title="ドラッグして移動">⠿</span>
+    <button class="word-picker-btn" onmousedown="event.preventDefault()" ontouchstart="app.captureCurrentSelection()" onclick="app.addSelectedWord()">追加</button>
+    <button class="word-picker-btn word-picker-btn-undo" onmousedown="event.preventDefault()" onclick="app.undoSavedWord()">戻る</button>
+</div>
+<div id="word-picker-toast"></div>
 
 <!-- ページジャンプ用カスタムモーダル -->
 <div class="sidebar-overlay" id="jump-overlay" onclick="app.closeJumpModal()"></div>
@@ -489,7 +617,7 @@
         <div class="editor-container">
             <div style="margin: 10px 0; padding: 15px; background: var(--q-bg); border-radius: 8px; border-left: 5px solid var(--primary-color);">
                 <h3 style="margin-top:0; font-size: 16px;">クラウド同期</h3>
-                <p id="login-desc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークが同期されます。</p>
+                <p id="login-desc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Googleアカウントでログインすると、別の端末でもブックマークや保存した単語が同期されます。</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="login-btn" onclick="app.toggleLogin()" style="background-color: #db4437;">Googleでログイン</button>
                     <!-- 手動同期＆クリーンアップボタン -->
@@ -642,7 +770,7 @@ const app = {
     user: null,
 
     isNavSwapped: false,
-    isSwiping: false, // スワイプ中の誤動作防止フラグ
+    isSwiping: false,
     
     reviewData: [],
     reviewCurrentPage: 0,
@@ -650,6 +778,13 @@ const app = {
     reviewSortOrder: 'asc',
     isReviewAccordionsOpen: false,
     lastReviewTopItem: null,
+
+    // 新機能：単語選択・保存リスト（クラウド同期対応）
+    savedWords: [],
+    isWordSelectMode: false,
+    cachedSelection: "",
+    cachedSelectionTime: 0,
+    toastTimer: null,
 
     REMOTE_JSON_URL: "https://raw.githubusercontent.com/enpro697/eitangoapp/refs/heads/main/eitango1.json",
 
@@ -661,6 +796,7 @@ const app = {
         this.bookmarkedOptions = {};
 
         this.loadFromLocalStorage();
+        this.initWordPicker();
 
         const jsonInput = document.getElementById('json-input');
         jsonInput.value = this.savedJsonString;
@@ -686,7 +822,7 @@ const app = {
                 if (syncBtn) syncBtn.style.display = "none";
 
                 const loginDesc = document.getElementById('login-desc');
-                if (loginDesc) loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークが同期されます。";
+                if (loginDesc) loginDesc.innerText = "Googleアカウントでログインすると、別の端末でもブックマークや保存した単語が同期されます。";
             }
             this.loadBookmarks();
         });
@@ -710,6 +846,228 @@ const app = {
         this.setupDragAndLongPress();
         this.fetchRemoteData(false);
         this.setupGlobalClickListeners();
+    },
+
+    /* =========================================================
+       新機能：単語選択・フローティングポップアップ関連
+       ========================================================= */
+    initWordPicker() {
+        this.updateSavedWordsUI();
+
+        // 選択中のテキストを常に監視（スマホでボタンタップ時に選択が外れる対策）
+        document.addEventListener('selectionchange', () => {
+            const sel = window.getSelection();
+            const text = sel ? sel.toString().trim() : "";
+            if (text) {
+                this.cachedSelection = text;
+                this.cachedSelectionTime = Date.now();
+            }
+        });
+
+        // 保存されていたON/OFF状態を復元
+        const savedMode = localStorage.getItem('vocab_word_select_mode') === 'true';
+        const radio = document.querySelector(`input[name="word-select-mode"][value="${savedMode ? 'on' : 'off'}"]`);
+        if (radio) radio.checked = true;
+        this.setWordSelectMode(savedMode, false);
+
+        // ポップアップのドラッグ移動を初期化
+        this.setupWordPickerDrag();
+    },
+
+    setWordSelectMode(enabled, save = true) {
+        this.isWordSelectMode = enabled;
+        if (save) {
+            localStorage.setItem('vocab_word_select_mode', String(enabled));
+        }
+        const popup = document.getElementById('word-picker-popup');
+        if (!popup) return;
+        if (enabled) {
+            popup.classList.remove('hidden');
+            this.restoreWordPickerPosition();
+        } else {
+            popup.classList.add('hidden');
+        }
+    },
+
+    restoreWordPickerPosition() {
+        const popup = document.getElementById('word-picker-popup');
+        if (!popup) return;
+        try {
+            const posStr = localStorage.getItem('vocab_word_picker_pos');
+            if (!posStr) return;
+            const pos = JSON.parse(posStr);
+            const maxX = Math.max(0, window.innerWidth - popup.offsetWidth - 8);
+            const maxY = Math.max(0, window.innerHeight - popup.offsetHeight - 8);
+            const x = Math.min(Math.max(8, pos.x), maxX);
+            const y = Math.min(Math.max(8, pos.y), maxY);
+            popup.style.left = `${x}px`;
+            popup.style.top = `${y}px`;
+            popup.style.right = 'auto';
+            popup.style.bottom = 'auto';
+        } catch (e) {}
+    },
+
+    setupWordPickerDrag() {
+        const popup = document.getElementById('word-picker-popup');
+        const handle = document.getElementById('word-picker-handle');
+        if (!popup || !handle) return;
+
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        const startDrag = (clientX, clientY) => {
+            const rect = popup.getBoundingClientRect();
+            isDragging = true;
+            offsetX = clientX - rect.left;
+            offsetY = clientY - rect.top;
+            popup.style.left = `${rect.left}px`;
+            popup.style.top = `${rect.top}px`;
+            popup.style.right = 'auto';
+            popup.style.bottom = 'auto';
+        };
+
+        const moveDrag = (clientX, clientY) => {
+            if (!isDragging) return;
+            const maxX = Math.max(0, window.innerWidth - popup.offsetWidth - 4);
+            const maxY = Math.max(0, window.innerHeight - popup.offsetHeight - 4);
+            const newX = Math.min(Math.max(4, clientX - offsetX), maxX);
+            const newY = Math.min(Math.max(4, clientY - offsetY), maxY);
+            popup.style.left = `${newX}px`;
+            popup.style.top = `${newY}px`;
+        };
+
+        const endDrag = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            const rect = popup.getBoundingClientRect();
+            localStorage.setItem('vocab_word_picker_pos', JSON.stringify({ x: rect.left, y: rect.top }));
+        };
+
+        handle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startDrag(e.clientX, e.clientY);
+        });
+        document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+        document.addEventListener('mouseup', endDrag);
+
+        handle.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            startDrag(t.clientX, t.clientY);
+        }, { passive: true });
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const t = e.touches[0];
+            moveDrag(t.clientX, t.clientY);
+        }, { passive: true });
+        document.addEventListener('touchend', endDrag);
+    },
+
+    captureCurrentSelection() {
+        const sel = window.getSelection();
+        const text = sel ? sel.toString().trim() : "";
+        if (text) {
+            this.cachedSelection = text;
+            this.cachedSelectionTime = Date.now();
+        }
+    },
+
+    addSelectedWord() {
+        const sel = window.getSelection();
+        let text = sel ? sel.toString().trim() : "";
+
+        // スマホ等でタップ瞬間に選択が消えた場合、直近2秒以内のキャッシュを利用
+        if (!text && this.cachedSelection && (Date.now() - this.cachedSelectionTime < 2000)) {
+            text = this.cachedSelection;
+        }
+
+        if (!text) {
+            this.showToast("単語を範囲選択してください");
+            return;
+        }
+
+        // 改行や連続空白を1スペースに整形
+        const normalized = text.replace(/\s+/g, ' ').trim();
+        const isDuplicate = this.savedWords.some(w => w.toLowerCase() === normalized.toLowerCase());
+
+        if (isDuplicate) {
+            const proceed = confirm(`「${normalized}」はすでに保存済みです。\n重複して追加しますか？`);
+            if (!proceed) return;
+        }
+
+        this.savedWords.push(normalized);
+        this.saveSavedWords();
+        this.cachedSelection = "";
+        if (sel && sel.removeAllRanges) {
+            try { sel.removeAllRanges(); } catch (e) {}
+        }
+        this.showToast(`追加: ${normalized} (${this.savedWords.length}件)`);
+    },
+
+    undoSavedWord() {
+        if (this.savedWords.length === 0) {
+            this.showToast("取り消す単語がありません");
+            return;
+        }
+        const removed = this.savedWords.pop();
+        this.saveSavedWords();
+        this.showToast(`取消: ${removed} (残り${this.savedWords.length}件)`);
+    },
+
+    saveSavedWords() {
+        localStorage.setItem('vocab_saved_words', JSON.stringify(this.savedWords));
+        this.updateSavedWordsUI();
+        // ブックマークと同様にクラウド同期・オフライン未同期フラグ管理を実行
+        this.saveBookmarks();
+    },
+
+    updateSavedWordsUI() {
+        const copyBtn = document.getElementById('copy-saved-words-btn');
+        if (copyBtn) {
+            copyBtn.innerText = `保存済単語一括コピー (${this.savedWords.length})`;
+        }
+    },
+
+    async copySavedWords() {
+        if (this.savedWords.length === 0) {
+            alert("保存されている単語はありません。");
+            return;
+        }
+        const text = this.savedWords.join('\n');
+        try {
+            await navigator.clipboard.writeText(text);
+            alert(`${this.savedWords.length}件の単語をコピーしました！`);
+        } catch (err) {
+            alert("コピーに失敗しました。ブラウザの権限を確認してください。");
+        }
+    },
+
+    clearSavedWords() {
+        if (this.savedWords.length === 0) {
+            alert("削除する単語はありません。");
+            return;
+        }
+        if (confirm(`保存済みの単語 ${this.savedWords.length}件 をすべて削除しますか？`)) {
+            this.savedWords = [];
+            this.saveSavedWords();
+            this.showToast("保存済み単語を一括削除しました");
+        }
+    },
+
+    showToast(message) {
+        const toast = document.getElementById('word-picker-toast');
+        if (!toast) return;
+        toast.innerText = message;
+        toast.classList.add('show');
+        if (this.toastTimer) clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 1800);
+    },
+
+    hasTextSelection() {
+        const sel = window.getSelection();
+        return !!(sel && sel.toString().trim().length > 0);
     },
 
     scrollToElement(el) {
@@ -788,7 +1146,6 @@ const app = {
     attachNavSwapListeners(btn) {
         if (!btn) return;
         
-        // --- PC用：ドラッグ＆ドロップ ---
         btn.draggable = true;
         btn.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', 'nav-swap');
@@ -798,7 +1155,6 @@ const app = {
             e.target.style.opacity = '1';
         });
         
-        // --- スマホ用：横スワイプ ---
         let startX = 0;
         let startY = 0;
         
@@ -811,7 +1167,6 @@ const app = {
         btn.addEventListener('touchmove', (e) => {
             const curX = e.changedTouches[0].clientX;
             const curY = e.changedTouches[0].clientY;
-            // X方向の移動がY方向より大きく、かつ30px以上動いた場合スワイプと判定
             if (Math.abs(curX - startX) > 30 && Math.abs(curX - startX) > Math.abs(curY - startY)) {
                 this.isSwiping = true;
             }
@@ -820,7 +1175,6 @@ const app = {
         btn.addEventListener('touchend', (e) => {
             if (this.isSwiping) {
                 this.toggleNavSwap();
-                // 直後の click イベントを防止するため、フラグ解除を少し遅らせる
                 setTimeout(() => { this.isSwiping = false; }, 300);
             }
         });
@@ -832,7 +1186,6 @@ const app = {
         this.attachNavSwapListeners(prevBtn);
         this.attachNavSwapListeners(nextBtn);
         
-        // PC向け：画面のどこにドロップしても反応するようにする
         document.addEventListener('dragover', (e) => e.preventDefault());
         document.addEventListener('drop', (e) => {
             if (e.dataTransfer.getData('text/plain') === 'nav-swap') {
@@ -859,9 +1212,9 @@ const app = {
             const isReviewView = !document.getElementById('review-view').classList.contains('hidden');
 
             if (!isQuizView && !isReviewView) return;
+            if (this.hasTextSelection()) return;
+            if (e.target.closest('#word-picker-popup')) return;
             if (e.target.closest('.opt-bookmark-btn') || e.target.closest('button') || e.target.closest('a') || e.target.closest('select') || e.target.closest('input')) return;
-
-            // モーダルの内側なら無視
             if (e.target.closest('#jump-modal')) return;
 
             if (isReviewView) {
@@ -934,11 +1287,11 @@ const app = {
                 }
             }
             
-            // 共通の画面端タップ処理
             const isSidebarAction = e.target.closest('.sidebar') || e.target.closest('.sidebar-overlay');
             const isModalAction = e.target.closest('#jump-overlay') || e.target.closest('#jump-modal');
+            const isOptionButton = e.target.closest('.option-button');
 
-            if (!isSidebarAction && !isModalAction) {
+            if (!isSidebarAction && !isModalAction && !isOptionButton) {
                 const clickX = e.clientX;
                 const screenWidth = window.innerWidth;
                 const appEl = document.getElementById('app');
@@ -991,6 +1344,10 @@ const app = {
                         const dbData = docSnap.data();
                         this.bookmarkedIds = dbData.bookmarks || [];
                         this.bookmarkedOptions = dbData.bookmarkedOptions || {};
+                        if (Array.isArray(dbData.savedWords)) {
+                            this.savedWords = dbData.savedWords;
+                            localStorage.setItem('vocab_saved_words', JSON.stringify(this.savedWords));
+                        }
                         localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds)); 
                         localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
                     }
@@ -1007,6 +1364,7 @@ const app = {
         }
 
         this.updateBookmarkUI();
+        this.updateSavedWordsUI();
         this.renderSidebar();
 
         if (document.getElementById('bookmark-filter').checked) {
@@ -1020,15 +1378,19 @@ const app = {
             this.bookmarkedIds = savedIds ? JSON.parse(savedIds) : [];
             const savedOpts = localStorage.getItem('vocab_bookmarked_options');
             this.bookmarkedOptions = savedOpts ? JSON.parse(savedOpts) : {};
+            const storedWords = localStorage.getItem('vocab_saved_words');
+            this.savedWords = storedWords ? JSON.parse(storedWords) : [];
         } catch (e) {
             this.bookmarkedIds = [];
             this.bookmarkedOptions = {};
+            this.savedWords = [];
         }
     },
 
     async saveBookmarks() {
         localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
         localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
+        localStorage.setItem('vocab_saved_words', JSON.stringify(this.savedWords));
 
         if (this.user) {
             localStorage.setItem('vocab_unsynced', 'true');
@@ -1044,7 +1406,8 @@ const app = {
             try {
                 await setDoc(doc(db, "users", this.user.uid), {
                     bookmarks: this.bookmarkedIds,
-                    bookmarkedOptions: this.bookmarkedOptions
+                    bookmarkedOptions: this.bookmarkedOptions,
+                    savedWords: this.savedWords
                 }, { merge: true });
 
                 localStorage.removeItem('vocab_unsynced');
@@ -1094,10 +1457,12 @@ const app = {
         try {
             localStorage.setItem('vocab_bookmarks', JSON.stringify(this.bookmarkedIds));
             localStorage.setItem('vocab_bookmarked_options', JSON.stringify(this.bookmarkedOptions));
+            localStorage.setItem('vocab_saved_words', JSON.stringify(this.savedWords));
 
             await setDoc(doc(db, "users", this.user.uid), {
                 bookmarks: this.bookmarkedIds,
-                bookmarkedOptions: this.bookmarkedOptions
+                bookmarkedOptions: this.bookmarkedOptions,
+                savedWords: this.savedWords
             }, { merge: true });
 
             localStorage.removeItem('vocab_unsynced');
@@ -1107,7 +1472,7 @@ const app = {
                 loginDesc.innerHTML = `<span style="color: var(--correct-color); font-weight: bold;">✓ 同期有効：</span> ${this.user.displayName || 'ユーザー'} としてログイン中です。`;
             }
 
-            let msg = "クラウドと同期し、ローカルの変更を反映しました！\n";
+            let msg = `クラウドと同期し、ブックマークと保存済み単語(${this.savedWords.length}件)を反映しました！\n`;
             if (removedCount > 0) {
                 msg += `（過去の無効なゴミデータ ${removedCount} 件を削除しました）`;
             } else {
@@ -1116,6 +1481,7 @@ const app = {
             alert(msg);
 
             this.updateBookmarkUI();
+            this.updateSavedWordsUI();
             this.renderSidebar();
             if (document.getElementById('bookmark-filter').checked) {
                 this.applyFilters();
@@ -1441,14 +1807,14 @@ const app = {
             let escapedWordStr = wordStr.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
             itemDiv.innerHTML = `
-                <button class="option-button" onclick="app.handleOptionClick(${index}, ${isCorrect})">
+                <div class="option-button" role="button" tabindex="0" onclick="app.handleOptionClick(${index}, ${isCorrect})">
                     <span id="opt-star-${index}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
                           onclick="app.toggleOptionBookmark(event, '${q.id}', '${escapedWordStr}', ${index})">
                         ${isOptionBookmarked ? '★' : '☆'}
                     </span>
                     <span class="option-text">${index + 1}. ${wordStr}</span>
                     <span class="icon-toggle">▼</span>
-                </button>
+                </div>
                 <div class="accordion-content">
                     <div class="accordion-inner">
                         <div class="accordion-body">
@@ -1481,6 +1847,8 @@ const app = {
     },
 
     handleOptionClick(index, isCorrect) {
+        if (this.hasTextSelection()) return;
+
         const item = document.getElementById(`option-item-${index}`);
         if (item.classList.contains('open')) {
             item.classList.remove('open');
@@ -1717,14 +2085,14 @@ const app = {
             let isOptionBookmarked = this.bookmarkedOptions[item.qId] && this.bookmarkedOptions[item.qId].includes(item.wordStr);
 
             itemDiv.innerHTML = `
-                <button class="option-button" onclick="app.handleReviewOptionClick(${i})">
+                <div class="option-button" role="button" tabindex="0" onclick="app.handleReviewOptionClick(${i})">
                     <span id="review-star-${i}" class="opt-bookmark-btn ${isOptionBookmarked ? 'active' : ''}" 
                           onclick="app.toggleReviewBookmark(event, '${item.qId}', '${escapedWordStr}', ${i})">
                         ${isOptionBookmarked ? '★' : '☆'}
                     </span>
                     <span class="option-text">${item.wordStr}</span>
                     <span class="icon-toggle">▼</span>
-                </button>
+                </div>
                 <div class="accordion-content">
                     <div class="accordion-inner">
                         <div class="accordion-body" style="padding-top: 10px;">
@@ -1747,6 +2115,8 @@ const app = {
     },
 
     handleReviewOptionClick(index) {
+        if (this.hasTextSelection()) return;
+
         const item = document.getElementById(`review-item-${index}`);
         if (item.classList.contains('open')) {
             item.classList.remove('open');
@@ -1856,7 +2226,6 @@ const app = {
         const val = parseInt(input.value, 10);
         const totalPages = Math.ceil(this.reviewData.length / this.reviewPerPage) || 1;
         
-        // スマホ用：画面外にダミー入力枠を作ってフォーカスを奪い、即座にblurしてキーボードを完全に消すハック
         const dummy = document.createElement('input');
         dummy.style.position = 'absolute';
         dummy.style.opacity = '0';
